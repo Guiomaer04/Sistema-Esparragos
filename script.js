@@ -1,8 +1,28 @@
 /* =========================
-   VALIDAR SESIÓN
+   VALIDAR SESIÓN CON TIEMPO
 ========================= */
 
-if(localStorage.getItem("sesionActiva") !== "true"){
+let sesionActiva =
+    localStorage.getItem("sesionActiva");
+
+let horaLogin =
+    localStorage.getItem("horaLogin");
+
+let tiempoActual =
+    Date.now();
+
+// 10 minutos = 600000 milisegundos
+let tiempoLimite = 600000;
+
+if(
+    sesionActiva !== "true" ||
+    !horaLogin ||
+    (tiempoActual - horaLogin > tiempoLimite)
+){
+    // cerrar sesión automáticamente
+    localStorage.removeItem("sesionActiva");
+    localStorage.removeItem("horaLogin");
+
     window.location.href = "login.html";
 }
 
@@ -85,13 +105,10 @@ function agregarFila(){
     }
 
     let tara = jabas * 1.60;
-
     let pesoNeto = peso - tara;
-
     let total = pesoNeto * precio;
 
     let registro = {
-
         semana,
         dia,
         fecha,
@@ -106,9 +123,7 @@ function agregarFila(){
     datos.push(registro);
 
     guardarDatos();
-
     mostrarDatos();
-
     limpiarCampos();
 }
 
@@ -130,32 +145,20 @@ function mostrarDatos(){
     datos.forEach((item, index) => {
 
         totalJabas += item.jabas;
-
         totalPeso += item.pesoNeto;
-
         totalGanado += item.total;
 
         tbody.innerHTML += `
             <tr>
-
                 <td>${item.semana}</td>
-
                 <td>${item.dia}</td>
-
                 <td>${item.fecha}</td>
-
                 <td>${item.jabas}</td>
-
                 <td>${item.peso.toFixed(2)}</td>
-
                 <td>${item.tara.toFixed(2)}</td>
-
                 <td>${item.pesoNeto.toFixed(2)}</td>
-
                 <td>${item.precio.toFixed(2)}</td>
-
                 <td>${item.total.toFixed(2)}</td>
-
                 <td>
                     <button
                         class="eliminar"
@@ -163,7 +166,6 @@ function mostrarDatos(){
                         X
                     </button>
                 </td>
-
             </tr>
         `;
     });
@@ -192,7 +194,6 @@ function eliminarFila(index){
     datos.splice(index, 1);
 
     guardarDatos();
-
     mostrarDatos();
 }
 
@@ -215,15 +216,10 @@ function guardarDatos(){
 function limpiarCampos(){
 
     document.getElementById("semana").value = "";
-
     document.getElementById("dia").value = "";
-
     document.getElementById("fecha").value = "";
-
     document.getElementById("jabas").value = "";
-
     document.getElementById("peso").value = "";
-
     document.getElementById("precio").value = "";
 }
 
@@ -234,13 +230,11 @@ function limpiarCampos(){
 async function descargarPDF(){
 
     const { jsPDF } = window.jspdf;
-
     const doc = new jsPDF();
 
     let y = 20;
 
     doc.setFontSize(16);
-
     doc.text(
         "Sistema de Control de Espárragos",
         20,
@@ -248,28 +242,19 @@ async function descargarPDF(){
     );
 
     y += 15;
-
     doc.setFontSize(10);
 
     datos.forEach((item) => {
 
         let texto =
-
-        `Semana: ${item.semana}
-        | Día: ${item.dia}
-        | Fecha: ${item.fecha}
-        | Jabas: ${item.jabas}
-        | Peso Neto: ${item.pesoNeto.toFixed(2)} kg
-        | Total: $${item.total.toFixed(2)}`;
+        `Semana: ${item.semana} | Día: ${item.dia} | Fecha: ${item.fecha} | Jabas: ${item.jabas} | Peso Neto: ${item.pesoNeto.toFixed(2)} kg | Total: $${item.total.toFixed(2)}`;
 
         doc.text(texto, 10, y);
 
         y += 10;
 
         if(y > 270){
-
             doc.addPage();
-
             y = 20;
         }
     });
@@ -285,6 +270,10 @@ function cerrarSesion(){
 
     localStorage.removeItem(
         "sesionActiva"
+    );
+
+    localStorage.removeItem(
+        "horaLogin"
     );
 
     window.location.href = "login.html";
