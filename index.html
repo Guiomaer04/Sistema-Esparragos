@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Sistema de Control de Espárragos</title>
+
+    <link rel="stylesheet" href="estilos.css">
+</head>
+
+<body>
+
+    <div class="contenedor">
+
+        <div class="top-bar">
+
+            <div>
+                <h1>🌱 Sistema de Control de Espárragos</h1>
+
+                <p class="subtitulo">
+                    Campaña de cosecha de espárragos
+                    "Campos Dora Graciela"
+                </p>
+
+                <p class="visitas">
+                    Visitas al sistema:
+                    <span id="contadorVisitas">0</span>
+                </p>
+            </div>
+
+            <button class="cerrar-btn"
+                    onclick="cerrarSesion()">
+                Cerrar sesión
+            </button>
+
+        </div>
+
+        <div class="resumen">
+
+            <div class="card">
+                <h3>Total Jabas</h3>
+                <span id="totalJabas">0</span>
+            </div>
+
+            <div class="card">
+                <h3>Peso Neto</h3>
+                <span id="totalPeso">0.00 kg</span>
+            </div>
+
+            <div class="card">
+                <h3>Total Ganado</h3>
+                <span id="totalGanado">$0.00</span>
+            </div>
+
+        </div>
+
+        <div class="formulario">
+
+            <label>Semana:</label>
+            <input type="number" id="semana">
+
+            <label>Día:</label>
+            <input type="number" id="dia">
+
+            <label>Fecha:</label>
+            <input type="date" id="fecha">
+
+            <label>Jabas:</label>
+            <input type="number" id="jabas">
+
+            <label>Peso bruto (kg):</label>
+            <input type="number"
+                   id="peso"
+                   step="0.01">
+
+            <label>Precio ($):</label>
+            <input type="number"
+                   id="precio"
+                   step="0.01">
+
+            <button onclick="agregarFila()">
+                Agregar registro
+            </button>
+
+            <button onclick="descargarPDF()">
+                Descargar PDF
+            </button>
+
+        </div>
+
+        <table id="tabla">
+
+            <thead>
+                <tr>
+                    <th>Semana</th>
+                    <th>Día</th>
+                    <th>Fecha</th>
+                    <th>Jabas</th>
+                    <th>Peso Bruto</th>
+                    <th>Tara</th>
+                    <th>Peso Neto</th>
+                    <th>Precio</th>
+                    <th>Total</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+
+            <tbody></tbody>
+
+        </table>
+
+        <footer>
+            Creado por:
+            <strong>
+                William Guiomar Andia De La Cruz
+            </strong>
+        </footer>
+
+    </div>
+
+    <!-- Librería PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <script src="script.js"></script>
+
+</body>
+</html>

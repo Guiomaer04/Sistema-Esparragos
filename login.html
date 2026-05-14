@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Sistema de Espárragos</title>
+    <link rel="stylesheet" href="estilos.css">
+</head>
+<body class="login-body">
+
+    <div class="login-box">
+
+        <h1>🌱 Iniciar Sesión</h1>
+
+        <p class="login-subtitulo">
+            Sistema de Control de Espárragos
+        </p>
+
+        <input type="text"
+               id="usuario"
+               placeholder="Ingrese usuario">
+
+        <input type="password"
+               id="clave"
+               placeholder="Ingrese contraseña">
+
+        <button onclick="iniciarSesion()">
+            Ingresar
+        </button>
+
+        <p id="mensajeError"></p>
+
+    </div>
+
+    <script>
+
+        function iniciarSesion(){
+
+            let usuario =
+                document.getElementById("usuario").value;
+
+            let clave =
+                document.getElementById("clave").value;
+
+            if(usuario === "admin" && clave === "1234"){
+
+                localStorage.setItem(
+                    "sesionActiva",
+                    "true"
+                );
+
+                window.location.href = "index.html";
+
+            }else{
+
+                document.getElementById("mensajeError")
+                .textContent =
+                "Usuario o contraseña incorrectos";
+
+            }
+        }
+
+    </script>
+
+</body>
+</html>

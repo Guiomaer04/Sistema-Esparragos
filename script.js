@@ -1,0 +1,291 @@
+/* =========================
+   VALIDAR SESIÓN
+========================= */
+
+if(localStorage.getItem("sesionActiva") !== "true"){
+    window.location.href = "login.html";
+}
+
+/* =========================
+   CONTADOR DE VISITAS
+========================= */
+
+let visitas =
+    localStorage.getItem("contadorVisitas") || 0;
+
+visitas++;
+
+localStorage.setItem(
+    "contadorVisitas",
+    visitas
+);
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function(){
+
+        document.getElementById(
+            "contadorVisitas"
+        ).textContent = visitas;
+
+    }
+);
+
+/* =========================
+   DATOS
+========================= */
+
+let datos =
+    JSON.parse(
+        localStorage.getItem("esparragos")
+    ) || [];
+
+mostrarDatos();
+
+/* =========================
+   AGREGAR FILA
+========================= */
+
+function agregarFila(){
+
+    let semana =
+        document.getElementById("semana").value;
+
+    let dia =
+        document.getElementById("dia").value;
+
+    let fecha =
+        document.getElementById("fecha").value;
+
+    let jabas =
+        parseInt(
+            document.getElementById("jabas").value
+        );
+
+    let peso =
+        parseFloat(
+            document.getElementById("peso").value
+        );
+
+    let precio =
+        parseFloat(
+            document.getElementById("precio").value
+        );
+
+    if(
+        !semana ||
+        !dia ||
+        !fecha ||
+        !jabas ||
+        !peso ||
+        !precio
+    ){
+        alert("Complete todos los campos");
+        return;
+    }
+
+    let tara = jabas * 1.60;
+
+    let pesoNeto = peso - tara;
+
+    let total = pesoNeto * precio;
+
+    let registro = {
+
+        semana,
+        dia,
+        fecha,
+        jabas,
+        peso,
+        tara,
+        pesoNeto,
+        precio,
+        total
+    };
+
+    datos.push(registro);
+
+    guardarDatos();
+
+    mostrarDatos();
+
+    limpiarCampos();
+}
+
+/* =========================
+   MOSTRAR DATOS
+========================= */
+
+function mostrarDatos(){
+
+    let tbody =
+        document.querySelector("#tabla tbody");
+
+    tbody.innerHTML = "";
+
+    let totalJabas = 0;
+    let totalPeso = 0;
+    let totalGanado = 0;
+
+    datos.forEach((item, index) => {
+
+        totalJabas += item.jabas;
+
+        totalPeso += item.pesoNeto;
+
+        totalGanado += item.total;
+
+        tbody.innerHTML += `
+            <tr>
+
+                <td>${item.semana}</td>
+
+                <td>${item.dia}</td>
+
+                <td>${item.fecha}</td>
+
+                <td>${item.jabas}</td>
+
+                <td>${item.peso.toFixed(2)}</td>
+
+                <td>${item.tara.toFixed(2)}</td>
+
+                <td>${item.pesoNeto.toFixed(2)}</td>
+
+                <td>${item.precio.toFixed(2)}</td>
+
+                <td>${item.total.toFixed(2)}</td>
+
+                <td>
+                    <button
+                        class="eliminar"
+                        onclick="eliminarFila(${index})">
+                        X
+                    </button>
+                </td>
+
+            </tr>
+        `;
+    });
+
+    document.getElementById(
+        "totalJabas"
+    ).textContent = totalJabas;
+
+    document.getElementById(
+        "totalPeso"
+    ).textContent =
+        totalPeso.toFixed(2) + " kg";
+
+    document.getElementById(
+        "totalGanado"
+    ).textContent =
+        "$" + totalGanado.toFixed(2);
+}
+
+/* =========================
+   ELIMINAR FILA
+========================= */
+
+function eliminarFila(index){
+
+    datos.splice(index, 1);
+
+    guardarDatos();
+
+    mostrarDatos();
+}
+
+/* =========================
+   GUARDAR DATOS
+========================= */
+
+function guardarDatos(){
+
+    localStorage.setItem(
+        "esparragos",
+        JSON.stringify(datos)
+    );
+}
+
+/* =========================
+   LIMPIAR CAMPOS
+========================= */
+
+function limpiarCampos(){
+
+    document.getElementById("semana").value = "";
+
+    document.getElementById("dia").value = "";
+
+    document.getElementById("fecha").value = "";
+
+    document.getElementById("jabas").value = "";
+
+    document.getElementById("peso").value = "";
+
+    document.getElementById("precio").value = "";
+}
+
+/* =========================
+   DESCARGAR PDF
+========================= */
+
+async function descargarPDF(){
+
+    const { jsPDF } = window.jspdf;
+
+    const doc = new jsPDF();
+
+    let y = 20;
+
+    doc.setFontSize(16);
+
+    doc.text(
+        "Sistema de Control de Espárragos",
+        20,
+        y
+    );
+
+    y += 15;
+
+    doc.setFontSize(10);
+
+    datos.forEach((item) => {
+
+        let texto =
+
+        `Semana: ${item.semana}
+        | Día: ${item.dia}
+        | Fecha: ${item.fecha}
+        | Jabas: ${item.jabas}
+        | Peso Neto: ${item.pesoNeto.toFixed(2)} kg
+        | Total: $${item.total.toFixed(2)}`;
+
+        doc.text(texto, 10, y);
+
+        y += 10;
+
+        if(y > 270){
+
+            doc.addPage();
+
+            y = 20;
+        }
+    });
+
+    doc.save("reporte_esparragos.pdf");
+}
+
+/* =========================
+   CERRAR SESIÓN
+========================= */
+
+function cerrarSesion(){
+
+    localStorage.removeItem(
+        "sesionActiva"
+    );
+
+    window.location.href = "login.html";
+}
