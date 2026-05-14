@@ -33,7 +33,6 @@
     </div>
 
     <script>
-
         function iniciarSesion(){
 
             let usuario =
@@ -42,11 +41,19 @@
             let clave =
                 document.getElementById("clave").value;
 
-            if(usuario === "Guiomar" && clave === "G24T12D01j09..."){
+            // CAMBIA AQUÍ tu usuario y contraseña si quieres
+            if(usuario === "admin" && clave === "1234"){
 
+                // activar sesión
                 localStorage.setItem(
                     "sesionActiva",
                     "true"
+                );
+
+                // guardar hora de inicio de sesión
+                localStorage.setItem(
+                    "horaLogin",
+                    Date.now()
                 );
 
                 window.location.href = "index.html";
@@ -56,10 +63,8 @@
                 document.getElementById("mensajeError")
                 .textContent =
                 "Usuario o contraseña incorrectos";
-
             }
         }
-
     </script>
 
 </body>
