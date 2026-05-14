@@ -232,34 +232,69 @@ async function descargarPDF(){
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
 
-    let y = 20;
-
+    // Título
     doc.setFontSize(16);
     doc.text(
         "Sistema de Control de Espárragos",
-        20,
-        y
+        14,
+        15
     );
 
-    y += 15;
-    doc.setFontSize(10);
+    // Crear filas
+    let filas = [];
 
     datos.forEach((item) => {
 
-        let texto =
-        `Semana: ${item.semana} | Día: ${item.dia} | Fecha: ${item.fecha} | Jabas: ${item.jabas} | Peso Neto: ${item.pesoNeto.toFixed(2)} kg | Total: $${item.total.toFixed(2)}`;
+        filas.push([
+            item.semana,
+            item.dia,
+            item.fecha,
+            item.jabas,
+            item.peso.toFixed(2),
+            item.tara.toFixed(2),
+            item.pesoNeto.toFixed(2),
+            item.precio.toFixed(2),
+            item.total.toFixed(2)
+        ]);
 
-        doc.text(texto, 10, y);
-
-        y += 10;
-
-        if(y > 270){
-            doc.addPage();
-            y = 20;
-        }
     });
 
-    doc.save("reporte_esparragos.pdf");
+    // Tabla tipo Excel
+    doc.autoTable({
+
+        startY: 25,
+
+        head: [[
+            "Semana",
+            "Día",
+            "Fecha",
+            "Jabas",
+            "Peso Bruto",
+            "Tara",
+            "Peso Neto",
+            "Precio",
+            "Total"
+        ]],
+
+        body: filas,
+
+        theme: "grid",
+
+        styles: {
+            fontSize: 8,
+            cellPadding: 2
+        },
+
+        headStyles: {
+            fillColor: [45, 106, 79]
+        }
+
+    });
+
+    // Descargar
+    doc.save(
+        "reporte_esparragos.pdf"
+    );
 }
 
 /* =========================
