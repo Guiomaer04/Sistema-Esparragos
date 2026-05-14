@@ -16,13 +16,38 @@
             Sistema de Control de Espárragos
         </p>
 
-        <input type="text"
-               id="usuario"
-               placeholder="Ingrese usuario">
+        <input 
+            type="text"
+            id="usuario"
+            placeholder="Ingrese usuario"
+        >
 
-        <input type="password"
-               id="clave"
-               placeholder="Ingrese contraseña">
+        <!-- Contraseña con botón para mostrar -->
+        <div style="position: relative; width: 100%;">
+            <input 
+                type="password"
+                id="clave"
+                placeholder="Ingrese contraseña"
+                style="width: 100%; padding-right: 45px;"
+            >
+
+            <button
+                type="button"
+                onclick="mostrarClave()"
+                style="
+                    position: absolute;
+                    right: 5px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    background: none;
+                    border: none;
+                    cursor: pointer;
+                    font-size: 18px;
+                "
+            >
+                👁️
+            </button>
+        </div>
 
         <button onclick="iniciarSesion()">
             Ingresar
@@ -41,16 +66,14 @@
             let clave =
                 document.getElementById("clave").value;
 
-            // CAMBIA AQUÍ tu usuario y contraseña si quieres
-            if(usuario === "Guiomar" && clave === "G24T12D01j09..."){
+            // Cambia aquí tu usuario y contraseña
+            if(usuario === "admin" && clave === "1234"){
 
-                // activar sesión
                 localStorage.setItem(
                     "sesionActiva",
                     "true"
                 );
 
-                // guardar hora de inicio de sesión
                 localStorage.setItem(
                     "horaLogin",
                     Date.now()
@@ -63,6 +86,18 @@
                 document.getElementById("mensajeError")
                 .textContent =
                 "Usuario o contraseña incorrectos";
+            }
+        }
+
+        function mostrarClave(){
+
+            let input =
+                document.getElementById("clave");
+
+            if(input.type === "password"){
+                input.type = "text";
+            }else{
+                input.type = "password";
             }
         }
     </script>
