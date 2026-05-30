@@ -1,0 +1,166 @@
+/* ==========================================================================
+   DISEÑO ESTÉTICO DE LOGIN - ESTILO GLASSMORPHISM
+   ========================================================================== */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    /* Degradado fluido inspirado en campos agrícolas modernos */
+    background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 50%, #40916c 100%);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+/* Contenedor principal con animación de entrada */
+.login-wrapper {
+    width: 100%;
+    max-width: 420px;
+    padding: 20px;
+    animation: desplazarSubir 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Tarjeta con efecto cristal esmerilado */
+.login-card {
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    padding: 40px 30px;
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+    text-align: center;
+}
+
+/* Icono de logotipo flotante en la parte superior */
+.logo-icono {
+    background-color: #e8f5e9;
+    color: #2d6a4f;
+    width: 65px;
+    height: 65px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px auto;
+    font-size: 1.8rem;
+    box-shadow: 0 4px 10px rgba(45, 106, 79, 0.15);
+}
+
+.login-header h1 {
+    font-size: 1.6rem;
+    color: #1b4332;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 5px;
+}
+
+.login-header p {
+    font-size: 0.9rem;
+    color: #64748b;
+    margin-bottom: 30px;
+}
+
+/* Campos de entrada estilizados */
+.login-body {
+    text-align: left;
+}
+
+.grupo-input-login {
+    margin-bottom: 20px;
+}
+
+.grupo-input-login label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 6px;
+}
+
+.grupo-input-login label i {
+    color: #475569;
+    margin-right: 4px;
+}
+
+.input-contenedor input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 1rem;
+    color: #1e293b;
+    background-color: #f8fafc;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+/* Efecto de enfoque iluminado en verde al hacer clic */
+.input-contenedor input:focus {
+    border-color: #2d6a4f;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.12);
+}
+
+/* Mensajes de error refinados */
+.mensaje-error {
+    color: #b30322;
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 15px;
+    min-height: 18px;
+    text-align: center;
+}
+
+/* Botón de acceso premium */
+.btn-login {
+    width: 100%;
+    padding: 14px;
+    background-color: #2d6a4f;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 4px 12px rgba(45, 106, 79, 0.2);
+    transition: all 0.2s ease;
+}
+
+.btn-login:hover {
+    background-color: #1b4332;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 15px rgba(27, 67, 50, 0.3);
+}
+
+.btn-login:active {
+    transform: translateY(1px);
+}
+
+.login-footer p {
+    margin-top: 30px;
+    font-size: 0.75rem;
+    color: #94a3b8;
+}
+
+/* Animaciones fluidas */
+@keyframes desplazarSubir {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
