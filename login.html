@@ -9,96 +9,38 @@
 <body class="login-body">
 
     <div class="login-box">
-
         <h1>🌱 Iniciar Sesión</h1>
+        <p class="login-subtitulo">Sistema de Control de Espárragos</p>
 
-        <p class="login-subtitulo">
-            Sistema de Control de Espárragos
-        </p>
+        <input type="text" id="usuario" placeholder="Ingrese usuario" class="login-input">
 
-        <input 
-            type="text"
-            id="usuario"
-            placeholder="Ingrese usuario"
-        >
-
-        <!-- Contraseña con botón para mostrar -->
-        <div style="position: relative; width: 100%;">
-            <input 
-                type="password"
-                id="clave"
-                placeholder="Ingrese contraseña"
-                style="width: 100%; padding-right: 45px;"
-            >
-
-            <button
-                type="button"
-                onclick="mostrarClave()"
-                style="
-                    position: absolute;
-                    right: 5px;
-                    top: 50%;
-                    transform: translateY(-50%);
-                    background: none;
-                    border: none;
-                    cursor: pointer;
-                    font-size: 18px;
-                "
-            >
-                👁️
-            </button>
+        <div class="wrapper-clave">
+            <input type="password" id="clave" placeholder="Ingrese contraseña" class="login-input">
+            <button type="button" onclick="mostrarClave()" class="btn-ojo">👁️</button>
         </div>
 
-        <button onclick="iniciarSesion()">
-            Ingresar
-        </button>
+        <button onclick="iniciarSesion()" class="btn-login">Ingresar</button>
 
         <p id="mensajeError"></p>
-
     </div>
 
     <script>
         function iniciarSesion(){
+            let usuario = document.getElementById("usuario").value.trim();
+            let clave = document.getElementById("clave").value;
 
-            let usuario =
-                document.getElementById("usuario").value;
-
-            let clave =
-                document.getElementById("clave").value;
-
-            // Cambia aquí tu usuario y contraseña
             if(usuario === "Guiomar12" && clave === "G24T12D01j09."){
-
-                localStorage.setItem(
-                    "sesionActiva",
-                    "true"
-                );
-
-                localStorage.setItem(
-                    "horaLogin",
-                    Date.now()
-                );
-
+                localStorage.setItem("sesionActiva", "true");
+                localStorage.setItem("horaLogin", Date.now());
                 window.location.href = "index.html";
-
             }else{
-
-                document.getElementById("mensajeError")
-                .textContent =
-                "Usuario o contraseña incorrectos";
+                document.getElementById("mensajeError").textContent = "Usuario o contraseña incorrectos";
             }
         }
 
         function mostrarClave(){
-
-            let input =
-                document.getElementById("clave");
-
-            if(input.type === "password"){
-                input.type = "text";
-            }else{
-                input.type = "password";
-            }
+            let input = document.getElementById("clave");
+            input.type = (input.type === "password") ? "text" : "password";
         }
     </script>
 
