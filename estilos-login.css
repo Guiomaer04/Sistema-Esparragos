@@ -215,7 +215,277 @@ body::after { width: 300px; height: 300px; bottom: -5%; right: -5%; }
     }
     .login-body {
         padding: 35px 25px;
-    }
+    }* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #0f271c 0%, #1b4332 50%, #2d6a4f 100%);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+
+/* ==========================================================================
+   FONDO DE PARTÍCULAS TECNOLÓGICAS (CSS PURO)
+   ========================================================================== */
+.particulas-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0; left: 0;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.particula {
+    position: absolute;
+    background: rgba(82, 183, 136, 0.2);
+    border-radius: 50%;
+    animation: moverParticula 15s infinite linear;
+}
+
+/* Tamaños y posiciones aleatorias para las partículas */
+.particula:nth-child(1) { width: 80px; height: 80px; top: 10%; left: 10%; animation-duration: 12s; }
+.particula:nth-child(2) { width: 120px; height: 120px; top: 60%; left: 80%; animation-duration: 18s; }
+.particula:nth-child(3) { width: 60px; height: 60px; top: 80%; left: 20%; animation-duration: 10s; }
+.particula:nth-child(4) { width: 90px; height: 90px; top: 30%; left: 70%; animation-duration: 14s; }
+.particula:nth-child(5) { width: 110px; height: 110px; top: 40%; left: 40%; animation-duration: 16s; }
+
+@keyframes moverParticula {
+    0% { transform: translateY(0) rotate(0deg) scale(1); opacity: 0.2; }
+    50% { transform: translateY(-40px) rotate(180deg) scale(1.2); opacity: 0.4; }
+    100% { transform: translateY(0) rotate(360deg) scale(1); opacity: 0.2; }
+}
+
+/* ==========================================================================
+   TARJETA PRINCIPAL (DISEÑO HORIZONTAL SPLIT)
+   ========================================================================== */
+.login-wrapper {
+    width: 100%;
+    max-width: 850px;
+    padding: 20px;
+    z-index: 2;
+    animation: entradaSuave 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.login-card {
+    background: #ffffff;
+    display: flex;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+    min-height: 440px;
+}
+
+/* COLUMNA IZQUIERDA: Panel verde de bienvenida */
+.login-header {
+    flex: 1;
+    background: linear-gradient(135deg, #133324 0%, #0b1a13 100%);
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: #ffffff;
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* RECOMENDACIÓN: LOGOTIPO CON ANIMACIÓN FLOTANTE SUAVE */
+.logo-icono {
+    background-color: rgba(255, 255, 255, 0.08);
+    color: #52b788;
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 25px;
+    font-size: 2.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+}
+
+.animacion-flotante {
+    animation: flotarHoja 4s ease-in-out infinite;
+}
+
+@keyframes flotarHoja {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-12px); }
+    100% { transform: translateY(0px); }
+}
+
+.login-header h1 {
+    font-size: 1.4rem;
+    font-weight: 400;
+    color: #74c69d;
+    margin-bottom: 5px;
+}
+
+.login-header h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    line-height: 1.2;
+    margin-bottom: 12px;
+}
+
+.login-header p {
+    font-size: 0.95rem;
+    color: #94a3b8;
+}
+
+/* COLUMNA DERECHA: Formulario */
+.login-body {
+    flex: 1.2;
+    padding: 50px 45px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background-color: #f8fafc;
+}
+
+/* ==========================================================================
+   RECOMENDACIÓN: CAJAS DE TEXTO CON ETIQUETAS FLOTANTES (ESTILO GOOGLE)
+   ========================================================================== */
+.grupo-input-login {
+    margin-bottom: 25px;
+}
+
+.input-contenedor {
+    position: relative;
+    width: 100%;
+}
+
+.input-contenedor input {
+    width: 100%;
+    padding: 16px 16px 12px 16px;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 10px;
+    font-size: 1rem;
+    color: #1e293b;
+    background-color: #ffffff;
+    outline: none;
+    transition: all 0.2s ease-index;
+}
+
+/* Texto de la etiqueta en posición inicial */
+.input-contenedor label {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    padding: 0 4px;
+    color: #64748b;
+    font-size: 1rem;
+    pointer-events: none;
+    transition: all 0.2s ease;
+}
+
+.input-contenedor label i {
+    margin-right: 4px;
+}
+
+/* Animación de elevación al hacer clic o si ya hay texto dentro */
+.input-contenedor input:focus ~ label,
+.input-contenedor input:not(:placeholder-shown) ~ label {
+    top: 0;
+    font-size: 0.8rem;
+    color: #2d6a4f;
+    font-weight: 600;
+    background: #ffffff;
+    transform: translateY(-50%);
+}
+
+.input-contenedor input:focus {
+    border-color: #2d6a4f;
+    box-shadow: 0 0 0 4px rgba(45, 106, 79, 0.12);
+}
+
+/* RECOMENDACIÓN: BOTÓN MOSTRAR/OCULTAR CONTRASEÑA */
+.icono-ojo {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition: color 0.2s;
+    z-index: 5;
+}
+
+.icono-ojo:hover {
+    color: #2d6a4f;
+}
+
+/* Mensajes de error */
+.mensaje-error {
+    color: #d90429;
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 18px;
+    min-height: 18px;
+    text-align: center;
+}
+
+/* ==========================================================================
+   RECOMENDACIÓN: BOTÓN CON SPINNER DE CARGA
+   ========================================================================== */
+.btn-login {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(135deg, #2d6a4f 0%, #1b4332 100%);
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(45, 106, 79, 0.3);
+    transition: all 0.2s ease;
+}
+
+.btn-login:hover {
+    background: linear-gradient(135deg, #357a58 0%, #22513c 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(27, 67, 50, 0.4);
+}
+
+.oculto { display: none !important; }
+
+/* Footer externo */
+.login-footer p {
+    text-align: center;
+    margin-top: 25px;
+    font-size: 0.8rem;
+    color: #64748b;
+}
+
+/* Diseño Responsivo para Celulares */
+@media screen and (max-width: 720px) {
+    .login-card { flex-direction: column; min-height: auto; }
+    .login-header { padding: 35px 20px; }
+    .login-body { padding: 40px 25px; }
+}
+
+@keyframes entradaSuave {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
 }
 
 /* Animaciones */
