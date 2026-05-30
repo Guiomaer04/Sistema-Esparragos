@@ -101,7 +101,7 @@ function agregarFila(){
     if(indiceEdicion >= 0){
         datos[indiceEdicion] = registro;
         indiceEdicion = -1;
-        document.getElementById("btnGuardar").textContent = "Agregar Registro";
+        document.getElementById("btnGuardar").innerHTML = '<i class="fa-solid fa-plus"></i> Agregar Registro';
     }else{
         datos.push(registro);
     }
@@ -112,37 +112,62 @@ function agregarFila(){
     sugerirSiguienteDia();
 }
 
-function mostrarDatos(){
-    let tbody = document.querySelector("#tabla tbody");
-    if(!tbody) return;
+/* ==========================================================================
+   ACTUALIZADO: LOGICA DE FILTRADO Y CARGA DE TABLAS RESPONSIVAS
+   ========================================================================== */
+function actualizarSelectFiltroSemanas() {
+    let select = document.getElementById("filtroSemana");
+    if(!select) return;
     
-    tbody.innerHTML = "";
+    let valorSeleccionado = select.value;
+    select.innerHTML = '<option value="todos">Mostrar Todas</option>';
+    
+    let semanasUnicas = [...new Set(datos.map(item => item.semana))].sort((a,b)=>a-b);
+    semanasUnicas.forEach(sem => {
+        select.innerHTML += `<option value="${sem}">Semana ${sem}</option>`;
+    });
+    
+    select.value = valorSeleccionado;
+}
 
+function filtrarYMostrar() {
+    let filtroSem = document.getElementById("filtroSemana").value;
+    let fechaInicio = document.getElementById("filtroFechaInicio").value;
+    let fechaFin = document.getElementById("filtroFechaFin").value;
+
+    let datosFiltrados = datos.filter(item => {
+        let cumpleSemana = (filtroSem === "todos" || parseInt(item.semana) === parseInt(filtroSem));
+        
+        let cumpleFecha = true;
+        if(fechaInicio) { cumpleFecha = cumpleFecha && (item.fecha >= fechaInicio); }
+        if(fechaFin) { cumpleFecha = cumpleFecha && (item.fecha <= fechaFin); }
+        
+        return cumpleSemana && cumpleFecha;
+    });
+
+    renderizarTablaHTML(datosFiltrados);
+}
+
+function limpiarFiltros() {
+    document.getElementById("filtroSemana").value = "todos";
+    document.getElementById("filtroFechaInicio").value = "";
+    document.getElementById("filtroFechaFin").value = "";
+    renderizarTablaHTML(datos);
+}
+
+function mostrarDatos(){
+    actualizarSelectFiltroSemanas();
+    filtrarYMostrar();
+    
+    // El resumen general siempre cuenta los globales de campaña
     let totalJabas = 0;
     let totalPeso = 0;
     let totalGanado = 0;
 
-    datos.forEach((item, index)=>{
+    datos.forEach((item)=>{
         totalJabas += item.jabas;
         totalPeso += item.pesoNeto;
         totalGanado += item.total;
-
-        tbody.innerHTML += `
-        <tr>
-            <td><strong>Semana ${item.semana}</strong></td>
-            <td>Día ${item.dia}</td>
-            <td>${item.fecha}</td>
-            <td>${item.jabas}</td>
-            <td>${item.peso.toFixed(2)}</td>
-            <td>${item.tara.toFixed(2)}</td>
-            <td style="color:#2d6a4f; font-weight:bold;">${item.pesoNeto.toFixed(2)}</td>
-            <td>$${item.precio.toFixed(2)}</td>
-            <td style="color:#1b4332; font-weight:bold;">$${item.total.toFixed(2)}</td>
-            <td>
-                <button onclick="editarFila(${index})">✏️</button>
-                <button class="eliminar" onclick="eliminarFila(${index})">🗑️</button>
-            </td>
-        </tr>`;
     });
 
     document.getElementById("totalJabas").textContent = totalJabas;
@@ -151,6 +176,35 @@ function mostrarDatos(){
 
     mostrarResumenSemanal();
     actualizarGrafico(); 
+}
+
+function renderizarTablaHTML(listaParaMostrar) {
+    let tbody = document.querySelector("#tabla tbody");
+    if(!tbody) return;
+    tbody.innerHTML = "";
+
+    listaParaMostrar.forEach((item)=>{
+        // Se encuentra el índice real en el array maestro original 'datos' para editar/eliminar correctamente
+        let indexReal = datos.findIndex(d => d === item);
+
+        // data-label sirve para que el CSS identifique la celda en pantallas móviles
+        tbody.innerHTML += `
+        <tr>
+            <td data-label="Semana"><strong>Semana ${item.semana}</strong></td>
+            <td data-label="Día">Día ${item.dia}</td>
+            <td data-label="Fecha">${item.fecha}</td>
+            <td data-label="Jabas">${item.jabas}</td>
+            <td data-label="Peso Bruto">${item.peso.toFixed(2)}</td>
+            <td data-label="Tara (1.6kg)">${item.tara.toFixed(2)}</td>
+            <td data-label="Peso Neto" style="color:#2d6a4f; font-weight:bold;">${item.pesoNeto.toFixed(2)}</td>
+            <td data-label="Precio">$${item.precio.toFixed(2)}</td>
+            <td data-label="Total Ganado" style="color:#1b4332; font-weight:bold;">$${item.total.toFixed(2)}</td>
+            <td data-label="Acciones">
+                <button onclick="editarFila(${indexReal})">✏️</button>
+                <button class="eliminar" onclick="eliminarFila(${indexReal})">🗑️</button>
+            </td>
+        </tr>`;
+    });
 }
 
 function editarFila(index){
@@ -164,7 +218,7 @@ function editarFila(index){
     document.getElementById("precio").value = item.precio;
 
     indiceEdicion = index;
-    document.getElementById("btnGuardar").textContent = "Guardar Cambios";
+    document.getElementById("btnGuardar").innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar Cambios';
     document.getElementById("semana").focus();
 }
 
@@ -222,11 +276,11 @@ function mostrarResumenSemanal(){
 
     for(let semana in resumen){
         html += `
-        <div class="card" style="border-top: 4px solid #2d6a4f;">
-            <h3>Semana ${semana}</h3>
-            <p>📦 Jabas: <strong>${resumen[semana].jabas}</strong></p>
-            <p>⚖️ Peso Neto: <strong>${resumen[semana].peso.toFixed(2)} kg</strong></p>
-            <p>💰 Ganancia: <strong style="color:#2d6a4f;">$${resumen[semana].total.toFixed(2)}</strong></p>
+        <div class="card" style="border-top: 4px solid #2d6a4f; display:block;">
+            <h3 style="color:#2d6a4f; font-weight:bold; margin-bottom:8px;">Semana ${semana}</h3>
+            <p style="margin:4px 0;">📦 Jabas: <strong>${resumen[semana].jabas}</strong></p>
+            <p style="margin:4px 0;">⚖️ Peso Neto: <strong>${resumen[semana].peso.toFixed(2)} kg</strong></p>
+            <p style="margin:4px 0;">💰 Ganancia: <strong style="color:#2d6a4f;">$${resumen[semana].total.toFixed(2)}</strong></p>
         </div>`;
     }
 
@@ -287,8 +341,54 @@ function limpiarCampos(){
     document.getElementById("precio").value = "";
 }
 
+/* ==========================================================================
+   NUEVA FUNCIONALIDAD: EXPORTAR E IMPORTAR COPIAS DE SEGURIDAD (BACKUP JSON)
+   ========================================================================== */
+function exportarBackup() {
+    if(datos.length === 0) {
+        alert("No hay información registrada para exportar.");
+        return;
+    }
+    let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(datos, null, 2));
+    let downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute("href", dataStr);
+    
+    let fechaFichero = new Date().toISOString().split('T')[0];
+    downloadAnchor.setAttribute("download", `Backup_Esparragos_${fechaFichero}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+}
+
+function importarBackup(event) {
+    let file = event.target.files[0];
+    if (!file) return;
+
+    let lector = new FileReader();
+    lector.onload = function(e) {
+        try {
+            let datosParseados = JSON.parse(e.target.result);
+            if (Array.isArray(datosParseados)) {
+                if(confirm(`Se han encontrado ${datosParseados.length} registros. ¿Deseas sobreescribir tu base de datos actual con esta copia?`)){
+                    datos = datosParseados;
+                    guardarDatos();
+                    mostrarDatos();
+                    sugerirSiguienteDia();
+                    alert("Copia de seguridad restaurada correctamente.");
+                }
+            } else {
+                alert("El archivo cargado no contiene un formato de respaldo válido.");
+            }
+        } catch (err) {
+            alert("Error al leer el archivo. Asegúrate de subir el archivo .json correcto.");
+        }
+    };
+    lector.readAsText(file);
+    event.target.value = ''; // Resetear el selector de ficheros
+}
+
 /* =========================
-   Exportación a Excel Real .xlsx (Corregido y Redondeado)
+   Exportación a Excel Real .xlsx
 ========================= */
 function exportarExcel(){
     if(datos.length === 0){
@@ -298,7 +398,6 @@ function exportarExcel(){
 
     let wb = XLSX.utils.book_new();
 
-    // Mapeo limpio para forzar columnas reales y dos decimales
     let mapearDatos = (lista) => lista.map(item => ({
         "Semana": "Semana " + item.semana,
         "Día": "Día " + item.dia,
@@ -311,11 +410,9 @@ function exportarExcel(){
         "Total ($)": parseFloat(item.total.toFixed(2))
     }));
 
-    // 1. Hoja General
     let wsGeneral = XLSX.utils.json_to_sheet(mapearDatos(datos));
     XLSX.utils.book_append_sheet(wb, wsGeneral, "Historial General");
 
-    // 2. Hojas por Semana
     let resumenSemanas = obtenerResumenPorSemanas();
     for (let numSemana in resumenSemanas) {
         let datosFiltrados = datos.filter(item => parseInt(item.semana) === parseInt(numSemana));
@@ -327,7 +424,7 @@ function exportarExcel(){
 }
 
 /* =========================
-   Generación de PDF Profesional (Diseño Ejecutivo Renovado)
+   Generación de PDF Profesional (Diseño Ejecutivo)
 ========================= */
 async function descargarPDF(){
     if(datos.length === 0){
@@ -337,15 +434,12 @@ async function descargarPDF(){
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF('p', 'mm', 'a4');
 
-    // 1. BANNER DE ENCABEZADO (Fondo Verde Oliva Oscuro)
-    doc.setFillColor(27, 67, 50); // #1b4332
+    doc.setFillColor(27, 67, 50); 
     doc.rect(0, 0, 210, 38, 'F');
     
-    // Línea de acento verde claro bajo el banner
-    doc.setFillColor(64, 145, 108); // #40916c
+    doc.setFillColor(64, 145, 108); 
     doc.rect(0, 38, 210, 1.5, 'F');
 
-    // Texto del Encabezado
     doc.setFont("Helvetica", "bold");
     doc.setFontSize(22);
     doc.setTextColor(255, 255, 255);
@@ -353,10 +447,9 @@ async function descargarPDF(){
     
     doc.setFont("Helvetica", "normal");
     doc.setFontSize(11);
-    doc.setTextColor(183, 228, 199); // Verde claro suave
+    doc.setTextColor(183, 228, 199); 
     doc.text("Sistema Integral de Control de Espárragos", 14, 23);
 
-    // Metadatos (Alineados a la derecha del banner)
     let fechaActual = new Date().toLocaleString('es-PE', { hour12: false });
     doc.setFontSize(8.5);
     doc.setTextColor(233, 245, 237);
@@ -364,18 +457,15 @@ async function descargarPDF(){
     doc.text(`Fecha Emisión: ${fechaActual}`, 200, 20, { align: "right" });
     doc.text(`País: Perú`, 200, 26, { align: "right" });
 
-    // 2. SECCIÓN: BALANCE CONSOLIDADO (Tarjetas de Métricas Simuladas)
     let y = 52;
     doc.setFont("Helvetica", "bold");
     doc.setFontSize(12);
     doc.setTextColor(27, 67, 50);
     doc.text("BALANCE CONSOLIDADO DE CAMPAÑA", 18, y);
     
-    // Barra vertical de acento de sección
     doc.setFillColor(45, 106, 79);
     doc.rect(14, y - 4, 2.5, 5.5, 'F');
 
-    // Calcular totales para las tarjetas de resumen
     let resumenSemanas = obtenerResumenPorSemanas();
     let totalSemanas = Object.keys(resumenSemanas).length;
     let totalJabas = 0, totalPesoNeto = 0, totalGanancia = 0;
@@ -386,13 +476,11 @@ async function descargarPDF(){
         totalGanancia += item.total;
     });
 
-    // Dibujar bloque contenedor gris claro para los KPIs
     y += 4;
     doc.setFillColor(244, 249, 245);
     doc.setDrawColor(216, 235, 217);
     doc.roundedRect(14, y, 182, 18, 2, 2, 'FD');
 
-    // Textos dentro del bloque consolidado (Distribución en columnas fijas)
     doc.setFontSize(8);
     doc.setTextColor(82, 121, 111);
     doc.text("SEMANAS", 20, y + 5);
@@ -408,7 +496,6 @@ async function descargarPDF(){
     doc.text(`${totalPesoNeto.toFixed(2)} kg`, 110, y + 12);
     doc.text(`$${totalGanancia.toFixed(2)}`, 155, y + 12);
 
-    // 3. SECCIÓN: TABLA INDEPENDIENTE DE RESUMEN SEMANAL
     y += 30;
     doc.setFont("Helvetica", "bold");
     doc.setFontSize(12);
@@ -441,7 +528,6 @@ async function descargarPDF(){
         margin: { left: 14, right: 14 }
     });
 
-    // 4. SECCIÓN: HISTORIAL DETALLADO DIARIO
     y = doc.lastAutoTable.finalY + 12;
     if (y > 240) { doc.addPage(); y = 20; } 
 
