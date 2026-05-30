@@ -40,10 +40,33 @@ h1 {
 }
 
 .visitas {
-    margin: 5px 0 0 0;
+    margin: 0;
     font-size: 0.85rem;
     color: #666;
 }
+
+#selectCampanaActiva {
+    padding: 6px 12px;
+    border: 2px solid #2d6a4f;
+    border-radius: 5px;
+    font-weight: bold;
+    color: #1b4332;
+    outline: none;
+    background-color: #fff;
+    cursor: pointer;
+}
+
+.btn-nueva-campana {
+    background-color: #2d6a4f;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 0.85rem;
+}
+.btn-nueva-campana:hover { background-color: #1b4332; }
 
 .cerrar-btn {
     background-color: #d90429;
@@ -55,10 +78,7 @@ h1 {
     font-weight: bold;
     transition: background 0.2s;
 }
-
-.cerrar-btn:hover {
-    background-color: #b30322;
-}
+.cerrar-btn:hover { background-color: #b30322; }
 
 .seccion-titulo {
     color: #2d6a4f;
@@ -70,7 +90,7 @@ h1 {
 }
 
 /* ==========================================================================
-   TARJETAS DE RESUMEN CON ANIMACIÓN E ICONOS
+   TARJETAS DE RESUMEN
    ========================================================================== */
 .resumen {
     display: flex;
@@ -129,7 +149,7 @@ h1 {
 .color-ganado { background: #fef9c3; color: #ca8a04; }
 
 /* ==========================================================================
-   CONTENEDOR DEL GRÁFICO OBLIGATORIO
+   CONTENEDOR DEL GRÁFICO
    ========================================================================== */
 .contenedor-grafico {
     position: relative;
@@ -143,7 +163,7 @@ h1 {
 }
 
 /* ==========================================================================
-   FORMULARIO DE REGISTROS
+   FORMULARIO
    ========================================================================== */
 .formulario {
     display: grid;
@@ -175,10 +195,7 @@ h1 {
     outline: none;
     font-size: 0.95rem;
 }
-
-.grupo-input input:focus {
-    border-color: #2d6a4f;
-}
+.grupo-input input:focus { border-color: #2d6a4f; }
 
 .acciones-form {
     grid-column: 1 / -1;
@@ -198,18 +215,15 @@ h1 {
     font-size: 0.95rem;
     transition: background 0.2s;
 }
-
 .btn-principal { background-color: #2d6a4f; color: white; }
 .btn-principal:hover { background-color: #1b4332; }
-
 .btn-pdf { background-color: #e63946; color: white; }
 .btn-pdf:hover { background-color: #c1121f; }
-
 .btn-excel { background-color: #38b000; color: white; }
 .btn-excel:hover { background-color: #007200; }
 
 /* ==========================================================================
-   PANEL DE FILTROS Y COPIAS DE SEGURIDAD
+   FILTROS Y COPIAS DE SEGURIDAD
    ========================================================================== */
 .panel-control-avanzado {
     background: #f8fafc;
@@ -292,7 +306,7 @@ h1 {
 .btn-backup-import:hover { background: #334155; }
 
 /* ==========================================================================
-   ESTILOS DE TABLA DE ESCRITORIO
+   ESTILOS DE TABLAS
    ========================================================================== */
 table {
     width: 100%;
@@ -317,13 +331,9 @@ th {
     cursor: pointer;
     user-select: none;
 }
-.ordenar-header:hover {
-    background-color: #1b4332;
-}
+.ordenar-header:hover { background-color: #1b4332; }
 
-tr:hover {
-    background-color: #f1f5f9;
-}
+tr:hover { background-color: #f1f5f9; }
 
 table button {
     padding: 5px 10px;
@@ -348,7 +358,7 @@ footer {
 }
 
 /* ==========================================================================
-   DISEÑO RESPONSIVO: TABLA CONVERTIDA EN TARJETAS PARA CELULAR
+   DISEÑO RESPONSIVO CELULARES
    ========================================================================== */
 @media screen and (max-width: 768px) {
     .panel-control-avanzado {
@@ -370,16 +380,10 @@ footer {
         text-align: center;
     }
 
-    .acciones-form {
-        flex-direction: column;
-    }
-    .acciones-form button {
-        width: 100%;
-    }
+    .acciones-form { flex-direction: column; }
+    .acciones-form button { width: 100%; }
 
-    .tabla-responsiva thead {
-        display: none;
-    }
+    .tabla-responsiva thead { display: none; }
 
     .tabla-responsiva, .tabla-responsiva tbody, .tabla-responsiva tr, .tabla-responsiva td {
         display: block;
