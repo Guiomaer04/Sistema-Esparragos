@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Control de Espárragos</title>
     <link rel="stylesheet" href="estilos.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
 
@@ -26,13 +31,18 @@
                 <span id="totalJabas">0</span>
             </div>
             <div class="card">
-                <h3>Peso Neto</h3>
+                <h3>Peso Neto Total</h3>
                 <span id="totalPeso">0.00 kg</span>
             </div>
             <div class="card">
                 <h3>Total Ganado</h3>
                 <span id="totalGanado">$0.00</span>
             </div>
+        </div>
+
+        <h2 class="seccion-titulo">📈 Gráfico de Ganancias por Semana</h2>
+        <div class="contenedor-grafico">
+            <canvas id="graficoSemanas"></canvas>
         </div>
 
         <h2 class="seccion-titulo">📅 Totales por Semana</h2>
@@ -72,25 +82,25 @@
 
             <div class="acciones-form">
                 <button id="btnGuardar" class="btn-principal" onclick="agregarFila()">Agregar Registro</button>
-                <button class="btn-pdf" onclick="descargarPDF()">📄 Descargar PDF</button>
-                <button class="btn-excel" onclick="exportarExcel()">📊 Descargar Excel</button>
+                <button class="btn-pdf" onclick="descargarPDF()">📄 Descargar PDF Profesional</button>
+                <button class="btn-excel" onclick="exportarExcel()">📊 Descargar Excel (.xlsx)</button>
             </div>
         </div>
 
-        <h2 class="seccion-titulo">📋 Historial de Registros</h2>
+        <h2 class="seccion-titulo">📋 Historial de Registros <span style="font-size:0.8rem; color:gray; font-weight:normal;">(Haz clic en los encabezados con ↕️ para ordenar)</span></h2>
         <div style="overflow-x: auto;">
             <table id="tabla">
                 <thead>
                     <tr>
-                        <th>Semana</th>
+                        <th onclick="ordenarTabla('semana')" class="ordenar-header">Semana ↕️</th>
                         <th>Día</th>
-                        <th>Fecha</th>
+                        <th onclick="ordenarTabla('fecha')" class="ordenar-header">Fecha ↕️</th>
                         <th>Jabas</th>
                         <th>Peso Bruto</th>
                         <th>Tara (1.6kg)</th>
                         <th>Peso Neto</th>
                         <th>Precio</th>
-                        <th>Total</th>
+                        <th onclick="ordenarTabla('total')" class="ordenar-header">Total Ganado ↕️</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -104,9 +114,6 @@
 
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
     <script src="script.js"></script>
-
 </body>
 </html>
