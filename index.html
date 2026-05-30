@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Control de Espárragos</title>
+
     <link rel="stylesheet" href="estilos.css">
 </head>
 <body>
@@ -26,12 +27,15 @@
                 </p>
             </div>
 
-            <button class="cerrar-btn"
-                    onclick="cerrarSesion()">
+            <button
+                class="cerrar-btn"
+                onclick="cerrarSesion()">
                 Cerrar sesión
             </button>
 
         </div>
+
+        <!-- RESUMEN GENERAL -->
 
         <div class="resumen">
 
@@ -51,6 +55,12 @@
             </div>
 
         </div>
+
+        <!-- RESUMEN SEMANAL -->
+
+        <div id="resumenSemanal"></div>
+
+        <!-- FORMULARIO -->
 
         <div class="formulario">
 
@@ -72,17 +82,25 @@
             <label>Precio ($):</label>
             <input type="number" id="precio" step="0.01">
 
-            <button onclick="agregarFila()">
-                Agregar registro
+            <button id="btnGuardar"
+                    onclick="agregarFila()">
+                Agregar Registro
             </button>
 
             <button onclick="descargarPDF()">
-                Descargar PDF
+                📄 Descargar PDF
+            </button>
+
+            <button onclick="exportarExcel()">
+                📊 Descargar Excel
             </button>
 
         </div>
 
+        <!-- TABLA -->
+
         <table id="tabla">
+
             <thead>
                 <tr>
                     <th>Semana</th>
@@ -94,11 +112,12 @@
                     <th>Peso Neto</th>
                     <th>Precio</th>
                     <th>Total</th>
-                    <th>Acción</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
 
             <tbody></tbody>
+
         </table>
 
         <footer>
@@ -110,7 +129,8 @@
 
     </div>
 
-    <!-- Librerías PDF -->
+    <!-- LIBRERÍAS PDF -->
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
