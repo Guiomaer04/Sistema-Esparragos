@@ -1,40 +1,26 @@
-// Si ya hay una sesión activa con tiempo válido, salta directamente al panel principal
-let sesionActiva = localStorage.getItem("sesionActiva");
-let horaLogin = localStorage.getItem("horaLogin");
-if (sesionActiva === "true" && horaLogin && (Date.now() - horaLogin < 600000)) {
-    window.location.href = "index.html";
-}
+// Forzar limpieza de cualquier sesión previa al cargar la página
+localStorage.removeItem("sesionActiva");
+localStorage.removeItem("horaLogin");
 
 function iniciarSesion() {
-    // Aplicamos .trim() a ambos campos para borrar espacios accidentales en blanco
-    let usuarioInput = document.getElementById("usuario").value.trim();
-    let passwordInput = document.getElementById("password").value.trim();
+    let u = document.getElementById("usuario").value;
+    let p = document.getElementById("password").value;
     let mensajeError = document.getElementById("mensajeError");
 
-    // Limpiamos el mensaje de alerta anterior
     mensajeError.textContent = "";
 
-    if (usuarioInput === "" || passwordInput === "") {
-        mensajeError.textContent = "⚠ Por favor, complete todos los campos.";
-        return;
-    }
-
-    // Validación limpia sin importar espacios ocultos
-    if (usuarioInput.toLowerCase() === "admin" && passwordInput === "1234") {
+    // Comparación directa y simple
+    if (u === "admin" && p === "1234") {
         localStorage.setItem("sesionActiva", "true");
-        localStorage.setItem("horaLogin", Date.now()); // Control de los 10 minutos
+        localStorage.setItem("horaLogin", Date.now());
         
-        // Redirección inmediata al panel de control
+        // Redireccionar al panel principal
         window.location.href = "index.html";
     } else {
-        mensajeError.textContent = "❌ Usuario o contraseña incorrectos.";
+        mensajeError.textContent = "❌ Usuario o contraseña incorrectos. Escribiste: " + u + " / " + p;
     }
 }
 
-// Permitir el ingreso presionando la tecla "Enter" en el teclado
-document.getElementById("usuario").addEventListener("keyup", function(event) {
-    if (event.key === "Enter") iniciarSesion();
-});
-document.getElementById("password").addEventListener("keyup", function(event) {
-    if (event.key === "Enter") iniciarSesion();
-});
+// Escuchar la tecla Enter
+document.getElementById("usuario").addEventListener("keyup", function(e) { if (e.key === "Enter") iniciarSesion(); });
+document.getElementById("password").addEventListener("keyup", function(e) { if (e.key === "Enter") iniciarSesion(); });
