@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Control de Espárragos</title>
+    <title>Sistema de Control de Espárragos - Multi-Campaña</title>
     <link rel="stylesheet" href="estilos.css">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -19,13 +19,20 @@
         <div class="top-bar">
             <div>
                 <h1>🌱 Sistema de Control de Espárragos</h1>
-                <p class="subtitulo">Campaña de cosecha de espárragos "Campos Dora Graciela"</p>
-                <p class="visitas"><i class="fa-solid fa-eye"></i> Visitas al sistema: <span id="contadorVisitas">0</span></p>
+                <p class="subtitulo">Gestión Integral — Campos Dora Graciela</p>
+                <div class="selector-campana-wrapper" style="margin-top: 10px; display: flex; gap: 10px; align-items: center;">
+                    <label style="font-weight: bold; color: #1b4332;"><i class="fa-solid fa-leaf"></i> Campaña Activa:</label>
+                    <select id="selectCampanaActiva" onchange="cambiarCampana(this.value)"></select>
+                    <button class="btn-nueva-campana" onclick="crearNuevaCampana()"><i class="fa-solid fa-folder-plus"></i> Nueva</button>
+                </div>
             </div>
-            <button class="cerrar-btn" onclick="cerrarSesion()"><i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión</button>
+            <div style="text-align: right;">
+                <p class="visitas"><i class="fa-solid fa-eye"></i> Visitas: <span id="contadorVisitas">0</span></p>
+                <button class="cerrar-btn" onclick="cerrarSesion()" style="margin-top: 8px;"><i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión</button>
+            </div>
         </div>
 
-        <h2 class="seccion-titulo">📊 Resumen General de Campaña</h2>
+        <h2 class="seccion-titulo">📊 Resumen General — <span id="nombreCampanaTitulo"></span></h2>
         <div class="resumen">
             <div class="card">
                 <div class="card-icono color-jabas"><i class="fa-solid fa-boxes-stacked"></i></div>
@@ -117,15 +124,15 @@
             </div>
             
             <div class="backup-container">
-                <button class="btn-backup-export" onclick="exportarBackup()"><i class="fa-solid fa-download"></i> Guardar Copia (.json)</button>
+                <button class="btn-backup-export" onclick="exportarBackup()"><i class="fa-solid fa-download"></i> Guardar Sistema (.json)</button>
                 <label class="btn-backup-import">
-                    <i class="fa-solid fa-upload"></i> Restaurar Copia
+                    <i class="fa-solid fa-upload"></i> Restaurar Sistema
                     <input type="file" id="importarFile" accept=".json" onchange="importarBackup(event)" style="display: none;">
                 </label>
             </div>
         </div>
 
-        <h2 class="seccion-titulo">📋 Historial de Registros <span style="font-size:0.8rem; color:gray; font-weight:normal;">(Haz clic en los encabezados con ↕️ para ordenar)</span></h2>
+        <h2 class="seccion-titulo">📋 Historial de Registros</h2>
         <div style="overflow-x: auto;">
             <table id="tabla" class="tabla-responsiva">
                 <thead>
@@ -140,6 +147,28 @@
                         <th>Precio</th>
                         <th onclick="ordenarTabla('total')" class="ordenar-header">Total Ganado ↕️</th>
                         <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <h2 class="seccion-titulo" style="color: #0284c7; border-left-color: #0284c7;"><i class="fa-solid fa-chart-line"></i> Módulo de Comparativa de Campañas</h2>
+        <p style="color: #64748b; font-size: 0.9rem; margin-top:-10px; margin-bottom:15px;">Análisis de rendimiento financiero acumulado comparando los cierres de cada periodo.</p>
+        
+        <div class="contenedor-grafico" style="height: 350px;">
+            <canvas id="graficoComparativo"></canvas>
+        </div>
+
+        <div style="overflow-x: auto; margin-top: 15px;">
+            <table id="tablaComparativa" style="border-top: 3px solid #0284c7;">
+                <thead>
+                    <tr style="background-color: #0284c7;">
+                        <th>Código Campaña</th>
+                        <th>Semanas Registradas</th>
+                        <th>Total Cajas/Jabas</th>
+                        <th>Peso Neto Total (kg)</th>
+                        <th>Ganancia Total Acumulada</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
