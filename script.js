@@ -327,7 +327,7 @@ function exportarExcel(){
 }
 
 /* =========================
-   Generación de PDF Profesional
+   Generación de PDF Profesional (Diseño Ejecutivo Renovado)
 ========================= */
 async function descargarPDF(){
     if(datos.length === 0){
@@ -335,82 +335,158 @@ async function descargarPDF(){
         return;
     }
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
+    const doc = new jsPDF('p', 'mm', 'a4');
 
-    doc.setFontSize(20);
-    doc.setTextColor(27, 67, 50); 
-    doc.text("CAMPOS DORA GRACIELA", 14, 15);
+    // 1. BANNER DE ENCABEZADO (Fondo Verde Oliva Oscuro)
+    doc.setFillColor(27, 67, 50); // #1b4332
+    doc.rect(0, 0, 210, 38, 'F');
     
-    doc.setFontSize(13);
-    doc.setTextColor(60, 60, 60);
-    doc.text("Sistema Integral de Control de Espárragos", 14, 22);
+    // Línea de acento verde claro bajo el banner
+    doc.setFillColor(64, 145, 108); // #40916c
+    doc.rect(0, 38, 210, 1.5, 'F');
 
-    let fechaActual = new Date().toLocaleString('es-PE');
-    let usuarioActivo = "William Guiomar Andia De La Cruz"; 
+    // Texto del Encabezado
+    doc.setFont("Helvetica", "bold");
+    doc.setFontSize(22);
+    doc.setTextColor(255, 255, 255);
+    doc.text("CAMPOS DORA GRACIELA", 14, 16);
+    
+    doc.setFont("Helvetica", "normal");
+    doc.setFontSize(11);
+    doc.setTextColor(183, 228, 199); // Verde claro suave
+    doc.text("Sistema Integral de Control de Espárragos", 14, 23);
 
-    doc.setFontSize(9);
-    doc.setTextColor(100, 100, 100);
-    doc.text(`Fecha de generación: ${fechaActual}`, 14, 29);
-    doc.text(`Generado por: ${usuarioActivo}`, 14, 34);
+    // Metadatos (Alineados a la derecha del banner)
+    let fechaActual = new Date().toLocaleString('es-PE', { hour12: false });
+    doc.setFontSize(8.5);
+    doc.setTextColor(233, 245, 237);
+    doc.text(`Usuario: William Guiomar Andia De La Cruz`, 200, 14, { align: "right" });
+    doc.text(`Fecha Emisión: ${fechaActual}`, 200, 20, { align: "right" });
+    doc.text(`País: Perú`, 200, 26, { align: "right" });
 
-    let filas = [];
-    datos.forEach(item=>{
-        filas.push([
-            `Semana ${item.semana}`, `Día ${item.dia}`, item.fecha, item.jabas,
-            item.peso.toFixed(2), item.tara.toFixed(2),
-            item.pesoNeto.toFixed(2), `$${item.precio.toFixed(2)}`,
+    // 2. SECCIÓN: BALANCE CONSOLIDADO (Tarjetas de Métricas Simuladas)
+    let y = 52;
+    doc.setFont("Helvetica", "bold");
+    doc.setFontSize(12);
+    doc.setTextColor(27, 67, 50);
+    doc.text("BALANCE CONSOLIDADO DE CAMPAÑA", 18, y);
+    
+    // Barra vertical de acento de sección
+    doc.setFillColor(45, 106, 79);
+    doc.rect(14, y - 4, 2.5, 5.5, 'F');
+
+    // Calcular totales para las tarjetas de resumen
+    let resumenSemanas = obtenerResumenPorSemanas();
+    let totalSemanas = Object.keys(resumenSemanas).length;
+    let totalJabas = 0, totalPesoNeto = 0, totalGanancia = 0;
+    
+    datos.forEach(item => {
+        totalJabas += item.jabas;
+        totalPesoNeto += item.pesoNeto;
+        totalGanancia += item.total;
+    });
+
+    // Dibujar bloque contenedor gris claro para los KPIs
+    y += 4;
+    doc.setFillColor(244, 249, 245);
+    doc.setDrawColor(216, 235, 217);
+    doc.roundedRect(14, y, 182, 18, 2, 2, 'FD');
+
+    // Textos dentro del bloque consolidado (Distribución en columnas fijas)
+    doc.setFontSize(8);
+    doc.setTextColor(82, 121, 111);
+    doc.text("SEMANAS", 20, y + 5);
+    doc.text("TOTAL JABAS", 65, y + 5);
+    doc.text("PESO NETO TOTAL", 110, y + 5);
+    doc.text("TOTAL LIQUIDADO", 155, y + 5);
+
+    doc.setFont("Helvetica", "bold");
+    doc.setFontSize(11);
+    doc.setTextColor(27, 67, 50);
+    doc.text(`${totalSemanas} Semanas`, 20, y + 12);
+    doc.text(`${totalJabas} un.`, 65, y + 12);
+    doc.text(`${totalPesoNeto.toFixed(2)} kg`, 110, y + 12);
+    doc.text(`$${totalGanancia.toFixed(2)}`, 155, y + 12);
+
+    // 3. SECCIÓN: TABLA INDEPENDIENTE DE RESUMEN SEMANAL
+    y += 30;
+    doc.setFont("Helvetica", "bold");
+    doc.setFontSize(12);
+    doc.setTextColor(27, 67, 50);
+    doc.text("RESUMEN CONSOLIDADO POR SEMANA", 18, y);
+    doc.setFillColor(45, 106, 79);
+    doc.rect(14, y - 4, 2.5, 5.5, 'F');
+
+    let filasResumen = [];
+    for(let sem in resumenSemanas){
+        filasResumen.push([
+            `Semana ${sem.padStart(2, '0')}`,
+            `${resumenSemanas[sem].jabas} un.`,
+            `${resumenSemanas[sem].peso.toFixed(2)} kg`,
+            `$${resumenSemanas[sem].total.toFixed(2)}`
+        ]);
+    }
+
+    doc.autoTable({
+        startY: y + 4,
+        head: [["Semana", "Jabas Totales", "Peso Neto Acumulado", "Ganancia Total (USD)"]],
+        body: filasResumen,
+        theme: "striped",
+        headStyles: { fillColor: [45, 106, 79], textColor: [255, 255, 255], fontStyle: "bold", halign: "center" },
+        bodyStyles: { halign: "center", fontSize: 9 },
+        columnStyles: {
+            0: { fontStyle: "bold" },
+            3: { fontStyle: "bold", textColor: [27, 67, 50] }
+        },
+        margin: { left: 14, right: 14 }
+    });
+
+    // 4. SECCIÓN: HISTORIAL DETALLADO DIARIO
+    y = doc.lastAutoTable.finalY + 12;
+    if (y > 240) { doc.addPage(); y = 20; } 
+
+    doc.setFont("Helvetica", "bold");
+    doc.setFontSize(12);
+    doc.setTextColor(27, 67, 50);
+    doc.text("HISTORIAL DETALLADO DE ENVÍO DIARIO", 18, y);
+    doc.setFillColor(45, 106, 79);
+    doc.rect(14, y - 4, 2.5, 5.5, 'F');
+
+    let filasDetalle = [];
+    datos.forEach(item => {
+        filasDetalle.push([
+            String(item.semana).padStart(2, '0'),
+            String(item.dia).padStart(2, '0'),
+            item.fecha,
+            item.jabas,
+            item.peso.toFixed(2),
+            item.tara.toFixed(2),
+            item.pesoNeto.toFixed(2),
+            `$${item.precio.toFixed(2)}`,
             `$${item.total.toFixed(2)}`
         ]);
     });
 
     doc.autoTable({
-        startY: 38,
-        head: [["Semana", "Día", "Fecha", "Jabas", "P. Bruto", "Tara", "P. Neto", "Precio", "Total"]],
-        body: filas,
+        startY: y + 4,
+        head: [["Sem", "Día", "Fecha", "Jabas", "P. Bruto", "Tara", "P. Neto", "Precio", "Total ($)"]],
+        body: filasDetalle,
         theme: "striped",
-        headStyles: { fillColor: [45, 106, 79] } 
+        headStyles: { fillColor: [45, 106, 79], textColor: [255, 255, 255], fontStyle: "bold", halign: "center" },
+        bodyStyles: { halign: "center", fontSize: 8.5 },
+        columnStyles: {
+            6: { fontStyle: "bold", textColor: [45, 106, 79] }, 
+            8: { fontStyle: "bold", textColor: [27, 67, 50] }  
+        },
+        margin: { left: 14, right: 14 },
+        didDrawPage: function (data) {
+            doc.setFont("Helvetica", "normal");
+            doc.setFontSize(8);
+            doc.setTextColor(113, 128, 150);
+            doc.text("Campos Dora Graciela — Sistema de Control de Espárragos", 14, 287);
+            doc.text("Página " + data.pageNumber, 196, 287, { align: "right" });
+        }
     });
-
-    let resumen = obtenerResumenPorSemanas();
-    let totalJabas=0, totalPeso=0, totalGanado=0;
-
-    datos.forEach(item=>{
-        totalJabas += item.jabas;
-        totalPeso += item.pesoNeto;
-        totalGanado += item.total;
-    });
-
-    let y = doc.lastAutoTable.finalY + 12;
-
-    if (y > 230) { doc.addPage(); y = 20; }
-
-    doc.setFontSize(14);
-    doc.setTextColor(27, 67, 50);
-    doc.text("RESUMEN DE RENDIMIENTO SEMANAL", 14, y);
-    y += 8;
-
-    doc.setFontSize(10);
-    doc.setTextColor(50, 50, 50);
-    for(let semana in resumen){
-        doc.text(
-            `• Semana ${semana}: Jabas Totales: ${resumen[semana].jabas} | Peso Neto Acumulado: ${resumen[semana].peso.toFixed(2)} kg | Ganancia: $${resumen[semana].total.toFixed(2)}`,
-            14, y
-        );
-        y += 7;
-    }
-
-    y += 5;
-    doc.setFontSize(14);
-    doc.setTextColor(27, 67, 50);
-    doc.text("BALANCE TOTAL DE CAMPAÑA", 14, y);
-    y += 8;
-    
-    doc.setFontSize(11);
-    doc.setTextColor(40, 40, 40);
-    doc.text(`Total de Jabas Acopiadas: ${totalJabas} un.`, 14, y); y += 7;
-    doc.text(`Total Peso Neto Despachado: ${totalPeso.toFixed(2)} kg`, 14, y); y += 7;
-    doc.setFont("Helvetica", "bold");
-    doc.text(`MONTO TOTAL LIQUIDADO: $${totalGanado.toFixed(2)} USD`, 14, y);
 
     doc.save("Reporte_Profesional_Esparragos.pdf");
 }
