@@ -28,10 +28,9 @@ localStorage.setItem("contadorVisitas", visitas);
 ========================= */
 let datos = JSON.parse(localStorage.getItem("esparragos")) || [];
 let indiceEdicion = -1;
-let miGrafico = null; // Instancia global del gráfico Chart.js
-let ordenAscendente = true; // Dirección de ordenamiento
+let miGrafico = null; 
+let ordenAscendente = true; 
 
-// Se ejecuta al cargar la página por completo
 document.addEventListener("DOMContentLoaded", function(){
     let c = document.getElementById("contadorVisitas");
     if(c) c.textContent = visitas;
@@ -41,19 +40,17 @@ document.addEventListener("DOMContentLoaded", function(){
 });
 
 /* =========================
-   Sugerencia Automática de Día y Semana (Mejora 3)
+   Sugerencia Automática de Día y Semana
 ========================= */
 function sugerirSiguienteDia() {
     if (datos.length === 0) {
         document.getElementById("semana").value = 1;
         document.getElementById("dia").value = 1;
-        // Poner la fecha de hoy por defecto
         let hoy = new Date().toISOString().split('T')[0];
         document.getElementById("fecha").value = hoy;
         return;
     }
 
-    // Ordenar temporalmente por fecha/semana/día para hallar el último cronológico real
     let copiaDatos = [...datos].sort((a, b) => {
         if (parseInt(a.semana) !== parseInt(b.semana)) {
             return parseInt(a.semana) - parseInt(b.semana);
@@ -75,7 +72,6 @@ function sugerirSiguienteDia() {
     document.getElementById("semana").value = sem;
     document.getElementById("dia").value = dia;
     
-    // Incrementar un día a la última fecha ingresada
     let ultimaFecha = new Date(ultimoRegistro.fecha + "T00:00:00");
     ultimaFecha.setDate(ultimaFecha.getDate() + 1);
     document.getElementById("fecha").value = ultimaFecha.toISOString().split('T')[0];
@@ -99,7 +95,7 @@ function agregarFila(){
     let total = pesoNeto * precio;
 
     let registro = {
-        semana, dia, fecha, jabas, peso, tara, pesoNeto, precio, total
+        semana, dia, fecha, jabas, peso, tara, pesoNeto, total, precio
     };
 
     if(indiceEdicion >= 0){
@@ -154,7 +150,7 @@ function mostrarDatos(){
     document.getElementById("totalGanado").textContent = "$" + totalGanado.toFixed(2);
 
     mostrarResumenSemanal();
-    actualizarGrafico(); // (Mejora 2)
+    actualizarGrafico(); 
 }
 
 function editarFila(index){
@@ -182,7 +178,7 @@ function eliminarFila(index){
 }
 
 /* =========================
-   Ordenar Tabla Interactivamente (Mejora 5)
+   Ordenar Tabla Interactivamente
 ========================= */
 function ordenarTabla(criterio) {
     ordenAscendente = !ordenAscendente;
@@ -191,7 +187,6 @@ function ordenarTabla(criterio) {
         let valA = a[criterio];
         let valB = b[criterio];
         
-        // Convertir a números si corresponde
         if (criterio === 'semana' || criterio === 'total') {
             valA = parseFloat(valA);
             valB = parseFloat(valB);
@@ -239,7 +234,7 @@ function mostrarResumenSemanal(){
 }
 
 /* =========================
-   Creación de Gráficos con Chart.js (Mejora 2)
+   Creación de Gráficos con Chart.js
 ========================= */
 function actualizarGrafico() {
     let ctx = document.getElementById('graficoSemanas');
@@ -250,7 +245,7 @@ function actualizarGrafico() {
     let gananciasData = Object.values(resumen).map(r => r.total.toFixed(2));
 
     if (miGrafico) {
-        miGrafico.destroy(); // Destruye el gráfico anterior antes de redibujar
+        miGrafico.destroy(); 
     }
 
     miGrafico = new Chart(ctx, {
@@ -293,7 +288,7 @@ function limpiarCampos(){
 }
 
 /* =========================
-   Exportación a Excel Real .xlsx (Mejora 1)
+   Exportación a Excel Real .xlsx (Corregido y Redondeado)
 ========================= */
 function exportarExcel(){
     if(datos.length === 0){
@@ -301,48 +296,38 @@ function exportarExcel(){
         return;
     }
 
-    // Crear un libro de Excel en blanco
     let wb = XLSX.utils.book_new();
 
-    // 1. Hoja de Historial General
-    let filaHistorial = datos.map(item => ({
+    // Mapeo limpio para forzar columnas reales y dos decimales
+    let mapearDatos = (lista) => lista.map(item => ({
         "Semana": "Semana " + item.semana,
         "Día": "Día " + item.dia,
         "Fecha": item.fecha,
         "Jabas": item.jabas,
-        "Peso Bruto (kg)": item.peso,
-        "Tara (kg)": item.tara,
-        "Peso Neto (kg)": item.pesoNeto,
-        "Precio ($)": item.precio,
-        "Total ($)": item.total
+        "Peso Bruto (kg)": parseFloat(item.peso.toFixed(2)),
+        "Tara (kg)": parseFloat(item.tara.toFixed(2)),
+        "Peso Neto (kg)": parseFloat(item.pesoNeto.toFixed(2)),
+        "Precio ($)": parseFloat(item.precio.toFixed(2)),
+        "Total ($)": parseFloat(item.total.toFixed(2))
     }));
-    let wsGeneral = XLSX.utils.json_to_sheet(filaHistorial);
+
+    // 1. Hoja General
+    let wsGeneral = XLSX.utils.json_to_sheet(mapearDatos(datos));
     XLSX.utils.book_append_sheet(wb, wsGeneral, "Historial General");
 
-    // 2. Hojas independientes distribuidas por semana
+    // 2. Hojas por Semana
     let resumenSemanas = obtenerResumenPorSemanas();
     for (let numSemana in resumenSemanas) {
-        let datosFiltrados = datos.filter(item => parseInt(item.semana) === parseInt(numSemana)).map(item => ({
-            "Día": "Día " + item.dia,
-            "Fecha": item.fecha,
-            "Jabas": item.jabas,
-            "Peso Bruto (kg)": item.peso,
-            "Tara (kg)": item.tara,
-            "Peso Neto (kg)": item.pesoNeto,
-            "Precio ($)": item.precio,
-            "Total ($)": item.total
-        }));
-
-        let wsSemana = XLSX.utils.json_to_sheet(datosFiltrados);
+        let datosFiltrados = datos.filter(item => parseInt(item.semana) === parseInt(numSemana));
+        let wsSemana = XLSX.utils.json_to_sheet(mapearDatos(datosFiltrados));
         XLSX.utils.book_append_sheet(wb, wsSemana, `Semana ${numSemana}`);
     }
 
-    // Guardar el archivo Excel real en el disco duro
     XLSX.writeFile(wb, "Reporte_Campos_Dora_Graciela.xlsx");
 }
 
 /* =========================
-   Generación de PDF Profesional (Mejora 4)
+   Generación de PDF Profesional
 ========================= */
 async function descargarPDF(){
     if(datos.length === 0){
@@ -352,18 +337,16 @@ async function descargarPDF(){
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
 
-    // Campos Dora Graciela - Encabezado Profesional
     doc.setFontSize(20);
-    doc.setTextColor(27, 67, 50); // Verde corporativo agrícola
+    doc.setTextColor(27, 67, 50); 
     doc.text("CAMPOS DORA GRACIELA", 14, 15);
     
     doc.setFontSize(13);
     doc.setTextColor(60, 60, 60);
     doc.text("Sistema Integral de Control de Espárragos", 14, 22);
 
-    // Metadatos profesionales del documento
     let fechaActual = new Date().toLocaleString('es-PE');
-    let usuarioActivo = "William Guiomar Andia De La Cruz"; // Puedes extraerlo dinámicamente si tienes múltiples usuarios
+    let usuarioActivo = "William Guiomar Andia De La Cruz"; 
 
     doc.setFontSize(9);
     doc.setTextColor(100, 100, 100);
@@ -385,7 +368,7 @@ async function descargarPDF(){
         head: [["Semana", "Día", "Fecha", "Jabas", "P. Bruto", "Tara", "P. Neto", "Precio", "Total"]],
         body: filas,
         theme: "striped",
-        headStyles: { fillColor: [45, 106, 79] } // Color verde medio para la cabecera del PDF
+        headStyles: { fillColor: [45, 106, 79] } 
     });
 
     let resumen = obtenerResumenPorSemanas();
