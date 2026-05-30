@@ -1,5 +1,5 @@
 /* ==========================================================================
-   DISEÑO ESTÉTICO DE LOGIN - ESTILO GLASSMORPHISM
+   DISEÑO DE LOGIN PREMIUM - CAMPOS DORA GRACIELA
    ========================================================================== */
 
 * {
@@ -10,83 +10,128 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    /* Degradado fluido inspirado en campos agrícolas modernos */
-    background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 50%, #40916c 100%);
+    /* Degradado fluido premium */
+    background: linear-gradient(135deg, #112d21 0%, #22513c 50%, #357a58 100%);
     height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
+    position: relative;
     overflow: hidden;
 }
 
-/* Contenedor principal con animación de entrada */
+/* Círculos decorativos de fondo para eliminar la sensación de vacío global */
+body::before, body::after {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(5px);
+    z-index: 1;
+}
+body::before { width: 400px; height: 400px; top: -10%; left: -5%; }
+body::after { width: 300px; height: 300px; bottom: -5%; right: -5%; }
+
+/* Contenedor con animación de entrada */
 .login-wrapper {
     width: 100%;
-    max-width: 420px;
+    max-width: 800px; /* Más ancho para el formato horizontal */
     padding: 20px;
-    animation: desplazarSubir 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 2;
+    animation: entradaSuave 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Tarjeta con efecto cristal esmerilado */
+/* Tarjeta dividida en dos columnas */
 .login-card {
-    background: rgba(255, 255, 255, 0.94);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    padding: 40px 30px;
+    background: #ffffff;
+    display: flex;
     border-radius: 16px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
-    text-align: center;
+    overflow: hidden; /* Corta las esquinas del panel izquierdo */
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.35);
+    min-height: 420px;
 }
 
-/* Icono de logotipo flotante en la parte superior */
+/* COLUMNA IZQUIERDA: Panel de marca elegante */
+.login-header {
+    flex: 1;
+    background: linear-gradient(135deg, #1b4332 0%, #0f271c 100%);
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: #ffffff;
+    position: relative;
+}
+
+/* Decoración lineal interna en el panel verde */
+.login-header::after {
+    content: "";
+    position: absolute;
+    top: 15px; bottom: 15px; left: 15px; right: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    pointer-events: none;
+}
+
 .logo-icono {
-    background-color: #e8f5e9;
-    color: #2d6a4f;
-    width: 65px;
-    height: 65px;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #52b788;
+    width: 75px;
+    height: 75px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 15px auto;
-    font-size: 1.8rem;
-    box-shadow: 0 4px 10px rgba(45, 106, 79, 0.15);
+    margin-bottom: 20px;
+    font-size: 2.2rem;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .login-header h1 {
-    font-size: 1.6rem;
-    color: #1b4332;
+    font-size: 1.8rem;
     font-weight: 700;
-    letter-spacing: -0.5px;
-    margin-bottom: 5px;
+    letter-spacing: 0.5px;
+    line-height: 1.2;
+    margin-bottom: 10px;
+    text-transform: uppercase;
 }
 
 .login-header p {
-    font-size: 0.9rem;
-    color: #64748b;
-    margin-bottom: 30px;
+    font-size: 0.95rem;
+    color: #b7e4c7;
+    font-weight: 300;
 }
 
-/* Campos de entrada estilizados */
+/* COLUMNA DERECHA: Formulario de entrada */
 .login-body {
-    text-align: left;
+    flex: 1.2;
+    padding: 45px 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .grupo-input-login {
-    margin-bottom: 20px;
+    margin-bottom: 22px;
 }
 
 .grupo-input-login label {
     display: block;
     font-size: 0.85rem;
     font-weight: 600;
-    color: #334155;
-    margin-bottom: 6px;
+    color: #475569;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .grupo-input-login label i {
-    color: #475569;
-    margin-right: 4px;
+    color: #2d6a4f;
+    margin-right: 6px;
+    font-size: 0.95rem;
 }
 
 .input-contenedor input {
@@ -101,29 +146,28 @@ body {
     transition: all 0.2s ease;
 }
 
-/* Efecto de enfoque iluminado en verde al hacer clic */
+/* Foco interactivo al hacer clic */
 .input-contenedor input:focus {
     border-color: #2d6a4f;
     background-color: #ffffff;
-    box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.12);
+    box-shadow: 0 0 0 4px rgba(45, 106, 79, 0.15);
 }
 
-/* Mensajes de error refinados */
+/* Alertas de error integradas limpiamente */
 .mensaje-error {
-    color: #b30322;
+    color: #d90429;
     font-size: 0.85rem;
     font-weight: 500;
     margin-bottom: 15px;
     min-height: 18px;
-    text-align: center;
 }
 
-/* Botón de acceso premium */
+/* Botón de acción principal */
 .btn-login {
     width: 100%;
     padding: 14px;
-    background-color: #2d6a4f;
-    color: white;
+    background: linear-gradient(135deg, #2d6a4f 0%, #1b4332 100%);
+    color: #ffffff;
     border: none;
     border-radius: 8px;
     font-size: 1rem;
@@ -132,32 +176,53 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    box-shadow: 0 4px 12px rgba(45, 106, 79, 0.2);
+    gap: 10px;
+    box-shadow: 0 4px 12px rgba(45, 106, 79, 0.25);
     transition: all 0.2s ease;
 }
 
 .btn-login:hover {
-    background-color: #1b4332;
+    background: linear-gradient(135deg, #357a58 0%, #22513c 100%);
     transform: translateY(-1px);
-    box-shadow: 0 6px 15px rgba(27, 67, 50, 0.3);
+    box-shadow: 0 6px 18px rgba(27, 67, 50, 0.35);
 }
 
 .btn-login:active {
     transform: translateY(1px);
 }
 
+/* Pie de página integrado a la derecha */
+.login-footer {
+    margin-top: 25px;
+    border-top: 1px solid #f1f5f9;
+    padding-top: 15px;
+    text-align: center;
+}
+
 .login-footer p {
-    margin-top: 30px;
     font-size: 0.75rem;
     color: #94a3b8;
 }
 
-/* Animaciones fluidas */
-@keyframes desplazarSubir {
+/* Ajuste responsivo para celulares */
+@media screen and (max-width: 680px) {
+    .login-card {
+        flex-direction: column;
+        min-height: auto;
+    }
+    .login-header {
+        padding: 30px 20px;
+    }
+    .login-body {
+        padding: 35px 25px;
+    }
+}
+
+/* Animaciones */
+@keyframes entradaSuave {
     from {
         opacity: 0;
-        transform: translateY(20px);
+        transform: translateY(25px);
     }
     to {
         opacity: 1;
