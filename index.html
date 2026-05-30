@@ -10,6 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
@@ -19,24 +20,33 @@
             <div>
                 <h1>🌱 Sistema de Control de Espárragos</h1>
                 <p class="subtitulo">Campaña de cosecha de espárragos "Campos Dora Graciela"</p>
-                <p class="visitas">Visitas al sistema: <span id="contadorVisitas">0</span></p>
+                <p class="visitas"><i class="fa-solid fa-eye"></i> Visitas al sistema: <span id="contadorVisitas">0</span></p>
             </div>
-            <button class="cerrar-btn" onclick="cerrarSesion()">Cerrar sesión</button>
+            <button class="cerrar-btn" onclick="cerrarSesion()"><i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión</button>
         </div>
 
         <h2 class="seccion-titulo">📊 Resumen General de Campaña</h2>
         <div class="resumen">
             <div class="card">
-                <h3>Total Jabas</h3>
-                <span id="totalJabas">0</span>
+                <div class="card-icono color-jabas"><i class="fa-solid fa-boxes-stacked"></i></div>
+                <div class="card-info">
+                    <h3>Total Jabas</h3>
+                    <span id="totalJabas">0</span>
+                </div>
             </div>
             <div class="card">
-                <h3>Peso Neto Total</h3>
-                <span id="totalPeso">0.00 kg</span>
+                <div class="card-icono color-peso"><i class="fa-solid fa-truck-ramp-box"></i></div>
+                <div class="card-info">
+                    <h3>Peso Neto Total</h3>
+                    <span id="totalPeso">0.00 kg</span>
+                </div>
             </div>
             <div class="card">
-                <h3>Total Ganado</h3>
-                <span id="totalGanado">$0.00</span>
+                <div class="card-icono color-ganado"><i class="fa-solid fa-money-bill-wave"></i></div>
+                <div class="card-info">
+                    <h3>Total Ganado</h3>
+                    <span id="totalGanado">$0.00</span>
+                </div>
             </div>
         </div>
 
@@ -81,15 +91,43 @@
             </div>
 
             <div class="acciones-form">
-                <button id="btnGuardar" class="btn-principal" onclick="agregarFila()">Agregar Registro</button>
+                <button id="btnGuardar" class="btn-principal" onclick="agregarFila()"><i class="fa-solid fa-plus"></i> Agregar Registro</button>
                 <button class="btn-pdf" onclick="descargarPDF()">📄 Descargar PDF</button>
                 <button class="btn-excel" onclick="exportarExcel()">📊 Descargar Excel</button>
             </div>
         </div>
 
+        <h2 class="seccion-titulo">🔍 Filtros y Copia de Seguridad</h2>
+        <div class="panel-control-avanzado">
+            <div class="filtros-container">
+                <div class="grupo-filtro">
+                    <label><i class="fa-solid fa-filter"></i> Filtrar por Semana:</label>
+                    <select id="filtroSemana" onchange="filtrarYMostrar()">
+                        <option value="todos">Mostrar Todas</option>
+                    </select>
+                </div>
+                <div class="grupo-filtro">
+                    <label><i class="fa-solid fa-calendar-days"></i> Rango de Fechas:</label>
+                    <div style="display: flex; gap: 5px;">
+                        <input type="date" id="filtroFechaInicio" onchange="filtrarYMostrar()" placeholder="Inicio">
+                        <input type="date" id="filtroFechaFin" onchange="filtrarYMostrar()" placeholder="Fin">
+                    </div>
+                </div>
+                <button class="btn-limpiar" onclick="limpiarFiltros()"><i class="fa-solid fa-filter-circle-xmark"></i> Limpiar</button>
+            </div>
+            
+            <div class="backup-container">
+                <button class="btn-backup-export" onclick="exportarBackup()"><i class="fa-solid fa-download"></i> Guardar Copia (.json)</button>
+                <label class="btn-backup-import">
+                    <i class="fa-solid fa-upload"></i> Restaurar Copia
+                    <input type="file" id="importarFile" accept=".json" onchange="importarBackup(event)" style="display: none;">
+                </label>
+            </div>
+        </div>
+
         <h2 class="seccion-titulo">📋 Historial de Registros <span style="font-size:0.8rem; color:gray; font-weight:normal;">(Haz clic en los encabezados con ↕️ para ordenar)</span></h2>
         <div style="overflow-x: auto;">
-            <table id="tabla">
+            <table id="tabla" class="tabla-responsiva">
                 <thead>
                     <tr>
                         <th onclick="ordenarTabla('semana')" class="ordenar-header">Semana ↕️</th>
