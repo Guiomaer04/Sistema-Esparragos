@@ -112,9 +112,9 @@ function agregarFila(){
     sugerirSiguienteDia();
 }
 
-/* ==========================================================================
-   ACTUALIZADO: LOGICA DE FILTRADO Y CARGA DE TABLAS RESPONSIVAS
-   ========================================================================== */
+/* =========================
+   LÓGICA DE FILTRADO DINÁMICO
+========================= */
 function actualizarSelectFiltroSemanas() {
     let select = document.getElementById("filtroSemana");
     if(!select) return;
@@ -159,7 +159,6 @@ function mostrarDatos(){
     actualizarSelectFiltroSemanas();
     filtrarYMostrar();
     
-    // El resumen general siempre cuenta los globales de campaña
     let totalJabas = 0;
     let totalPeso = 0;
     let totalGanado = 0;
@@ -184,10 +183,8 @@ function renderizarTablaHTML(listaParaMostrar) {
     tbody.innerHTML = "";
 
     listaParaMostrar.forEach((item)=>{
-        // Se encuentra el índice real en el array maestro original 'datos' para editar/eliminar correctamente
         let indexReal = datos.findIndex(d => d === item);
 
-        // data-label sirve para que el CSS identifique la celda en pantallas móviles
         tbody.innerHTML += `
         <tr>
             <td data-label="Semana"><strong>Semana ${item.semana}</strong></td>
@@ -232,7 +229,7 @@ function eliminarFila(index){
 }
 
 /* =========================
-   Ordenar Tabla Interactivamente
+   ORDENACIÓN DE TABLAS INTERACTIVAS
 ========================= */
 function ordenarTabla(criterio) {
     ordenAscendente = !ordenAscendente;
@@ -288,7 +285,7 @@ function mostrarResumenSemanal(){
 }
 
 /* =========================
-   Creación de Gráficos con Chart.js
+   CONTROL DE GRÁFICOS (CHART.JS)
 ========================= */
 function actualizarGrafico() {
     let ctx = document.getElementById('graficoSemanas');
@@ -341,9 +338,9 @@ function limpiarCampos(){
     document.getElementById("precio").value = "";
 }
 
-/* ==========================================================================
-   NUEVA FUNCIONALIDAD: EXPORTAR E IMPORTAR COPIAS DE SEGURIDAD (BACKUP JSON)
-   ========================================================================== */
+/* =========================
+   GESTIÓN DE COPIAS DE SEGURIDAD (.JSON)
+========================= */
 function exportarBackup() {
     if(datos.length === 0) {
         alert("No hay información registrada para exportar.");
@@ -384,11 +381,11 @@ function importarBackup(event) {
         }
     };
     lector.readAsText(file);
-    event.target.value = ''; // Resetear el selector de ficheros
+    event.target.value = ''; 
 }
 
 /* =========================
-   Exportación a Excel Real .xlsx
+   EXPORTACIÓN A EXCEL LIMPIO (.XLSX)
 ========================= */
 function exportarExcel(){
     if(datos.length === 0){
@@ -424,7 +421,7 @@ function exportarExcel(){
 }
 
 /* =========================
-   Generación de PDF Profesional (Diseño Ejecutivo)
+   DESCARGA DE PDF EJECUTIVO
 ========================= */
 async function descargarPDF(){
     if(datos.length === 0){
