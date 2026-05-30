@@ -4,13 +4,9 @@
 let sesionActiva = localStorage.getItem("sesionActiva");
 let horaLogin = localStorage.getItem("horaLogin");
 let tiempoActual = Date.now();
-let tiempoLimite = 600000; // 10 minutos
+let tiempoLimite = 600000; 
 
-if(
-    sesionActiva !== "true" ||
-    !horaLogin ||
-    (tiempoActual - horaLogin > tiempoLimite)
-){
+if(sesionActiva !== "true" || !horaLogin || (tiempoActual - horaLogin > tiempoLimite)){
     localStorage.removeItem("sesionActiva");
     localStorage.removeItem("horaLogin");
     window.location.href = "login.html";
@@ -23,24 +19,100 @@ let visitas = localStorage.getItem("contadorVisitas") || 0;
 visitas++;
 localStorage.setItem("contadorVisitas", visitas);
 
-/* =========================
-   VARIABLES GLOBALES
-========================= */
-let datos = JSON.parse(localStorage.getItem("esparragos")) || [];
+/* ==========================================================================
+   ESTRUCTURA MULTI-CAMPAÑA CENTRALIZADA
+   ========================================================================== */
+let baseDatosCampanas = JSON.parse(localStorage.getItem("sistemaCampanasEsparrafos"));
+
+// MIGRACIÓN AUTOMÁTICA: Si el usuario tiene datos viejos del sistema anterior, no los pierde.
+if (!baseDatosCampanas) {
+    let datosViejos = JSON.parse(localStorage.getItem("esparragos"));
+    if (datosViejos && datosViejos.length > 0) {
+        baseDatosCampanas = {
+            campanaActiva: "2026-1",
+            lista: { "2026-1": datosViejos }
+        };
+    } else {
+        baseDatosCampanas = {
+            campanaActiva: "2026-1",
+            lista: { "2026-1": [] }
+        };
+    }
+    localStorage.setItem("sistemaCampanasEsparrafos", JSON.stringify(baseDatosCampanas));
+}
+
+let campanaActiva = baseDatosCampanas.campanaActiva || "2026-1";
+let datos = baseDatosCampanas.lista[campanaActiva] || [];
+
 let indiceEdicion = -1;
-let miGrafico = null; 
+let miGraficoSemanas = null; 
+let miGraficoComparativo = null;
 let ordenAscendente = true; 
 
 document.addEventListener("DOMContentLoaded", function(){
     let c = document.getElementById("contadorVisitas");
     if(c) c.textContent = visitas;
     
+    construirSelectorCampanas();
     mostrarDatos();
     sugerirSiguienteDia();
 });
 
+/* ==========================================================================
+   CONTROL DE CAMPAÑAS (CAMBIAR Y CREAR NUEVAS)
+   ========================================================================== */
+function construirSelectorCampanas() {
+    let select = document.getElementById("selectCampanaActiva");
+    if(!select) return;
+    select.innerHTML = "";
+    
+    let codigos = Object.keys(baseDatosCampanas.lista).sort();
+    codigos.forEach(cod => {
+        select.innerHTML += `<option value="${cod}">${cod}</option>`;
+    });
+    select.value = campanaActiva;
+    document.getElementById("nombreCampanaTitulo").textContent = "Campaña " + campanaActiva;
+}
+
+function cambiarCampana(nuevoCodigo) {
+    campanaActiva = nuevoCodigo;
+    baseDatosCampanas.campanaActiva = campanaActiva;
+    datos = baseDatosCampanas.lista[campanaActiva] || [];
+    
+    localStorage.setItem("sistemaCampanasEsparrafos", JSON.stringify(baseDatosCampanas));
+    
+    document.getElementById("nombreCampanaTitulo").textContent = "Campaña " + campanaActiva;
+    indiceEdicion = -1;
+    document.getElementById("btnGuardar").innerHTML = '<i class="fa-solid fa-plus"></i> Agregar Registro';
+    
+    limpiarFiltros();
+    mostrarDatos();
+    sugerirSiguienteDia();
+}
+
+function crearNuevaCampana() {
+    let nuevoCodigo = prompt("Ingrese el código de la nueva campaña (Ejemplo: 2026-2 o 2027-1):");
+    if (!nuevoCodigo) return;
+    
+    nuevoCodigo = nuevoCodigo.trim().toUpperCase();
+    if(baseDatosCampanas.lista[nuevoCodigo]) {
+        alert("La campaña ya existe. Selecciónela en la lista desplegable.");
+        return;
+    }
+    
+    baseDatosCampanas.lista[nuevoCodigo] = [];
+    baseDatosCampanas.campanaActiva = nuevoCodigo;
+    localStorage.setItem("sistemaCampanasEsparrafos", JSON.stringify(baseDatosCampanas));
+    
+    campanaActiva = nuevoCodigo;
+    datos = [];
+    
+    construirSelectorCampanas();
+    cambiarCampana(nuevoCodigo);
+}
+
 /* =========================
-   Sugerencia Automática de Día y Semana
+   SUGERENCIA DE FECHAS
 ========================= */
 function sugerirSiguienteDia() {
     if (datos.length === 0) {
@@ -94,9 +166,7 @@ function agregarFila(){
     let pesoNeto = peso - tara;
     let total = pesoNeto * precio;
 
-    let registro = {
-        semana, dia, fecha, jabas, peso, tara, pesoNeto, total, precio
-    };
+    let registro = { semana, dia, fecha, jabas, peso, tara, pesoNeto, total, precio };
 
     if(indiceEdicion >= 0){
         datos[indiceEdicion] = registro;
@@ -113,7 +183,7 @@ function agregarFila(){
 }
 
 /* =========================
-   LÓGICA DE FILTRADO DINÁMICO
+   FILTROS INTERNOS DE CAMPAÑA
 ========================= */
 function actualizarSelectFiltroSemanas() {
     let select = document.getElementById("filtroSemana");
@@ -126,7 +196,6 @@ function actualizarSelectFiltroSemanas() {
     semanasUnicas.forEach(sem => {
         select.innerHTML += `<option value="${sem}">Semana ${sem}</option>`;
     });
-    
     select.value = valorSeleccionado;
 }
 
@@ -137,11 +206,9 @@ function filtrarYMostrar() {
 
     let datosFiltrados = datos.filter(item => {
         let cumpleSemana = (filtroSem === "todos" || parseInt(item.semana) === parseInt(filtroSem));
-        
         let cumpleFecha = true;
         if(fechaInicio) { cumpleFecha = cumpleFecha && (item.fecha >= fechaInicio); }
         if(fechaFin) { cumpleFecha = cumpleFecha && (item.fecha <= fechaFin); }
-        
         return cumpleSemana && cumpleFecha;
     });
 
@@ -174,7 +241,8 @@ function mostrarDatos(){
     document.getElementById("totalGanado").textContent = "$" + totalGanado.toFixed(2);
 
     mostrarResumenSemanal();
-    actualizarGrafico(); 
+    actualizarGraficoSemanas(); 
+    calcularYMostrarModuloComparativo(); // Carga los análisis Inter-Campañas
 }
 
 function renderizarTablaHTML(listaParaMostrar) {
@@ -206,7 +274,6 @@ function renderizarTablaHTML(listaParaMostrar) {
 
 function editarFila(index){
     let item = datos[index];
-
     document.getElementById("semana").value = item.semana;
     document.getElementById("dia").value = item.dia;
     document.getElementById("fecha").value = item.fecha;
@@ -220,7 +287,7 @@ function editarFila(index){
 }
 
 function eliminarFila(index){
-    if(confirm("¿Está seguro de que desea eliminar este registro de cosecha?")){
+    if(confirm("¿Está seguro de que desea eliminar este registro?")){
         datos.splice(index, 1);
         guardarDatos();
         mostrarDatos();
@@ -228,35 +295,25 @@ function eliminarFila(index){
     }
 }
 
-/* =========================
-   ORDENACIÓN DE TABLAS INTERACTIVAS
-========================= */
 function ordenarTabla(criterio) {
     ordenAscendente = !ordenAscendente;
-    
     datos.sort((a, b) => {
         let valA = a[criterio];
         let valB = b[criterio];
-        
         if (criterio === 'semana' || criterio === 'total') {
-            valA = parseFloat(valA);
-            valB = parseFloat(valB);
+            valA = parseFloat(valA); valB = parseFloat(valB);
         }
-        
         if (valA < valB) return ordenAscendente ? -1 : 1;
         if (valA > valB) return ordenAscendente ? 1 : -1;
         return 0;
     });
-    
     mostrarDatos();
 }
 
 function obtenerResumenPorSemanas() {
     let resumen = {};
     datos.forEach(item=>{
-        if(!resumen[item.semana]){
-            resumen[item.semana] = { jabas: 0, peso: 0, total: 0 };
-        }
+        if(!resumen[item.semana]){ resumen[item.semana] = { jabas: 0, peso: 0, total: 0 }; }
         resumen[item.semana].jabas += item.jabas;
         resumen[item.semana].peso += item.pesoNeto;
         resumen[item.semana].total += item.total;
@@ -267,7 +324,6 @@ function obtenerResumenPorSemanas() {
 function mostrarResumenSemanal(){
     let contenedor = document.getElementById("resumenSemanal");
     if(!contenedor) return;
-
     let resumen = obtenerResumenPorSemanas();
     let html = "";
 
@@ -280,14 +336,100 @@ function mostrarResumenSemanal(){
             <p style="margin:4px 0;">💰 Ganancia: <strong style="color:#2d6a4f;">$${resumen[semana].total.toFixed(2)}</strong></p>
         </div>`;
     }
-
     contenedor.innerHTML = html || "<p style='color:gray; padding:10px;'>No hay registros ingresados todavía.</p>";
 }
 
-/* =========================
-   CONTROL DE GRÁFICOS (CHART.JS)
-========================= */
-function actualizarGrafico() {
+/* ==========================================================================
+   NUEVA MÓDULO DE COMPARATIVA INTER-CAMPAÑAS
+   ========================================================================== */
+function calcularYMostrarModuloComparativo() {
+    let tbody = document.querySelector("#tablaComparativa tbody");
+    if(!tbody) return;
+    tbody.innerHTML = "";
+
+    let labelsCampanas = [];
+    let gananciasCampanas = [];
+    let pesoCampanas = [];
+
+    // Recorremos todas las campañas creadas en el sistema
+    let codigos = Object.keys(baseDatosCampanas.lista).sort();
+
+    codigos.forEach(cod => {
+        let registrosCamp = baseDatosCampanas.lista[cod] || [];
+        
+        let semanasUnicas = [...new Set(registrosCamp.map(item => item.semana))].length;
+        let tJabas = 0, tPeso = 0, tGanado = 0;
+
+        registrosCamp.forEach(item => {
+            tJabas += item.jabas;
+            tPeso += item.pesoNeto;
+            tGanado += item.total;
+        });
+
+        // Llenamos la tabla analítica inferior
+        tbody.innerHTML += `
+        <tr>
+            <td><strong>Campaña ${cod}</strong></td>
+            <td>${semanasUnicas} semanas</td>
+            <td>${tJabas} un.</td>
+            <td>${tPeso.toFixed(2)} kg</td>
+            <td style="color:#0284c7; font-weight:bold;">$${tGanado.toFixed(2)}</td>
+        </tr>`;
+
+        // Datos para alimentar el gráfico comparativo cruzado
+        labelsCampanas.push("Campaña " + cod);
+        gananciasCampanas.push(tGanado.toFixed(2));
+        pesoCampanas.push(tPeso.toFixed(2));
+    });
+
+    // Renderizar Gráfico Comparativo de Barras Múltiples
+    let ctxComp = document.getElementById('graficoComparativo');
+    if (!ctxComp) return;
+
+    if (miGraficoComparativo) { miGraficoComparativo.destroy(); }
+
+    miGraficoComparativo = new Chart(ctxComp, {
+        type: 'bar',
+        data: {
+            labels: labelsCampanas,
+            datasets: [
+                {
+                    label: 'Ganancias Totales Acumuladas ($)',
+                    data: gananciasCampanas,
+                    backgroundColor: '#0284c7',
+                    borderColor: '#0369a1',
+                    borderWidth: 1,
+                    borderRadius: 4
+                },
+                {
+                    label: 'Producción Neta Acumulada (kg)',
+                    data: pesoCampanas,
+                    backgroundColor: '#14b8a6',
+                    borderColor: '#0d9488',
+                    borderWidth: 1,
+                    borderRadius: 4,
+                    hidden: true // Se puede encender al hacer clic en la leyenda
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'top' },
+                title: { display: true, text: 'Rendimiento Financiero Global por Temporada' }
+            },
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+}
+
+/* ==========================================================================
+   GRÁFICO INTERNO SEMANAL
+   ========================================================================== */
+function actualizarGraficoSemanas() {
     let ctx = document.getElementById('graficoSemanas');
     if (!ctx) return;
 
@@ -295,16 +437,14 @@ function actualizarGrafico() {
     let semanasLabels = Object.keys(resumen).map(s => "Semana " + s);
     let gananciasData = Object.values(resumen).map(r => r.total.toFixed(2));
 
-    if (miGrafico) {
-        miGrafico.destroy(); 
-    }
+    if (miGraficoSemanas) { miGraficoSemanas.destroy(); }
 
-    miGrafico = new Chart(ctx, {
+    miGraficoSemanas = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: semanasLabels,
             datasets: [{
-                label: 'Ganancias de Campaña ($)',
+                label: 'Ganancias Semanales ($)',
                 data: gananciasData,
                 backgroundColor: '#2d6a4f',
                 borderColor: '#1b4332',
@@ -326,7 +466,8 @@ function actualizarGrafico() {
 }
 
 function guardarDatos(){
-    localStorage.setItem("esparragos", JSON.stringify(datos));
+    baseDatosCampanas.lista[campanaActiva] = datos;
+    localStorage.setItem("sistemaCampanasEsparrafos", JSON.stringify(baseDatosCampanas));
 }
 
 function limpiarCampos(){
@@ -338,20 +479,15 @@ function limpiarCampos(){
     document.getElementById("precio").value = "";
 }
 
-/* =========================
-   GESTIÓN DE COPIAS DE SEGURIDAD (.JSON)
-========================= */
+/* ==========================================================================
+   RESPALDOS GLOBALES DE TODO EL SISTEMA MULTI-CAMPAÑA
+   ========================================================================== */
 function exportarBackup() {
-    if(datos.length === 0) {
-        alert("No hay información registrada para exportar.");
-        return;
-    }
-    let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(datos, null, 2));
+    let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(baseDatosCampanas, null, 2));
     let downloadAnchor = document.createElement('a');
     downloadAnchor.setAttribute("href", dataStr);
-    
     let fechaFichero = new Date().toISOString().split('T')[0];
-    downloadAnchor.setAttribute("download", `Backup_Esparragos_${fechaFichero}.json`);
+    downloadAnchor.setAttribute("download", `Sistema_Total_Esparragos_${fechaFichero}.json`);
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
@@ -364,20 +500,24 @@ function importarBackup(event) {
     let lector = new FileReader();
     lector.onload = function(e) {
         try {
-            let datosParseados = JSON.parse(e.target.result);
-            if (Array.isArray(datosParseados)) {
-                if(confirm(`Se han encontrado ${datosParseados.length} registros. ¿Deseas sobreescribir tu base de datos actual con esta copia?`)){
-                    datos = datosParseados;
-                    guardarDatos();
+            let backup = JSON.parse(e.target.result);
+            if (backup && backup.lista) {
+                if(confirm("¿Deseas restaurar esta copia de seguridad? Se sobreescribirán todas las campañas actuales del sistema.")){
+                    baseDatosCampanas = backup;
+                    localStorage.setItem("sistemaCampanasEsparrafos", JSON.stringify(baseDatosCampanas));
+                    campanaActiva = baseDatosCampanas.campanaActiva;
+                    datos = baseDatosCampanas.lista[campanaActiva] || [];
+                    
+                    construirSelectorCampanas();
                     mostrarDatos();
                     sugerirSiguienteDia();
-                    alert("Copia de seguridad restaurada correctamente.");
+                    alert("Sistema multi-campaña restaurado con éxito.");
                 }
             } else {
-                alert("El archivo cargado no contiene un formato de respaldo válido.");
+                alert("El archivo no contiene una estructura multi-campaña válida.");
             }
         } catch (err) {
-            alert("Error al leer el archivo. Asegúrate de subir el archivo .json correcto.");
+            alert("Error al leer el archivo .json.");
         }
     };
     lector.readAsText(file);
@@ -385,14 +525,10 @@ function importarBackup(event) {
 }
 
 /* =========================
-   EXPORTACIÓN A EXCEL LIMPIO (.XLSX)
+   EXPORTAR EXCEL REAL (.XLSX)
 ========================= */
 function exportarExcel(){
-    if(datos.length === 0){
-        alert("No hay datos para exportar");
-        return;
-    }
-
+    if(datos.length === 0){ alert("No hay datos para exportar"); return; }
     let wb = XLSX.utils.book_new();
 
     let mapearDatos = (lista) => lista.map(item => ({
@@ -408,174 +544,79 @@ function exportarExcel(){
     }));
 
     let wsGeneral = XLSX.utils.json_to_sheet(mapearDatos(datos));
-    XLSX.utils.book_append_sheet(wb, wsGeneral, "Historial General");
-
-    let resumenSemanas = obtenerResumenPorSemanas();
-    for (let numSemana in resumenSemanas) {
-        let datosFiltrados = datos.filter(item => parseInt(item.semana) === parseInt(numSemana));
-        let wsSemana = XLSX.utils.json_to_sheet(mapearDatos(datosFiltrados));
-        XLSX.utils.book_append_sheet(wb, wsSemana, `Semana ${numSemana}`);
-    }
-
-    XLSX.writeFile(wb, "Reporte_Campos_Dora_Graciela.xlsx");
+    XLSX.utils.book_append_sheet(wb, wsGeneral, `Historial — ${campanaActiva}`);
+    XLSX.writeFile(wb, `Reporte_Esparragos_${campanaActiva}.xlsx`);
 }
 
 /* =========================
-   DESCARGA DE PDF EJECUTIVO
+   DESCARGA PDF DETALLADO DE CAMPAÑA
 ========================= */
 async function descargarPDF(){
-    if(datos.length === 0){
-        alert("No hay datos para generar el PDF");
-        return;
-    }
+    if(datos.length === 0){ alert("No hay datos para generar el PDF"); return; }
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF('p', 'mm', 'a4');
 
-    doc.setFillColor(27, 67, 50); 
-    doc.rect(0, 0, 210, 38, 'F');
-    
-    doc.setFillColor(64, 145, 108); 
-    doc.rect(0, 38, 210, 1.5, 'F');
+    doc.setFillColor(27, 67, 50); doc.rect(0, 0, 210, 38, 'F');
+    doc.setFillColor(64, 145, 108); doc.rect(0, 38, 210, 1.5, 'F');
 
-    doc.setFont("Helvetica", "bold");
-    doc.setFontSize(22);
-    doc.setTextColor(255, 255, 255);
+    doc.setFont("Helvetica", "bold"); doc.setFontSize(22); doc.setTextColor(255, 255, 255);
     doc.text("CAMPOS DORA GRACIELA", 14, 16);
     
-    doc.setFont("Helvetica", "normal");
-    doc.setFontSize(11);
-    doc.setTextColor(183, 228, 199); 
-    doc.text("Sistema Integral de Control de Espárragos", 14, 23);
+    doc.setFont("Helvetica", "normal"); doc.setFontSize(11); doc.setTextColor(183, 228, 199); 
+    doc.text(`Reporte de Cierre — Campaña ${campanaActiva}`, 14, 23);
 
     let fechaActual = new Date().toLocaleString('es-PE', { hour12: false });
-    doc.setFontSize(8.5);
-    doc.setTextColor(233, 245, 237);
+    doc.setFontSize(8.5); doc.setTextColor(233, 245, 237);
     doc.text(`Usuario: William Guiomar Andia De La Cruz`, 200, 14, { align: "right" });
     doc.text(`Fecha Emisión: ${fechaActual}`, 200, 20, { align: "right" });
-    doc.text(`País: Perú`, 200, 26, { align: "right" });
 
     let y = 52;
-    doc.setFont("Helvetica", "bold");
-    doc.setFontSize(12);
-    doc.setTextColor(27, 67, 50);
-    doc.text("BALANCE CONSOLIDADO DE CAMPAÑA", 18, y);
-    
-    doc.setFillColor(45, 106, 79);
-    doc.rect(14, y - 4, 2.5, 5.5, 'F');
+    doc.setFont("Helvetica", "bold"); doc.setFontSize(12); doc.setTextColor(27, 67, 50);
+    doc.text(`RESUMEN HISTÓRICO DE CAMPAÑA: ${campanaActiva}`, 18, y);
+    doc.setFillColor(45, 106, 79); doc.rect(14, y - 4, 2.5, 5.5, 'F');
 
-    let resumenSemanas = obtenerResumenPorSemanas();
-    let totalSemanas = Object.keys(resumenSemanas).length;
     let totalJabas = 0, totalPesoNeto = 0, totalGanancia = 0;
-    
-    datos.forEach(item => {
-        totalJabas += item.jabas;
-        totalPesoNeto += item.pesoNeto;
-        totalGanancia += item.total;
-    });
+    datos.forEach(item => { totalJabas += item.jabas; totalPesoNeto += item.pesoNeto; totalGanancia += item.total; });
 
     y += 4;
-    doc.setFillColor(244, 249, 245);
-    doc.setDrawColor(216, 235, 217);
+    doc.setFillColor(244, 249, 245); doc.setDrawColor(216, 235, 217);
     doc.roundedRect(14, y, 182, 18, 2, 2, 'FD');
 
-    doc.setFontSize(8);
-    doc.setTextColor(82, 121, 111);
-    doc.text("SEMANAS", 20, y + 5);
-    doc.text("TOTAL JABAS", 65, y + 5);
-    doc.text("PESO NETO TOTAL", 110, y + 5);
-    doc.text("TOTAL LIQUIDADO", 155, y + 5);
+    doc.setFontSize(8); doc.setTextColor(82, 121, 111);
+    doc.text("TOTAL JABAS", 20, y + 5); doc.text("PESO NETO TOTAL", 90, y + 5); doc.text("TOTAL LIQUIDADO", 150, y + 5);
 
-    doc.setFont("Helvetica", "bold");
-    doc.setFontSize(11);
-    doc.setTextColor(27, 67, 50);
-    doc.text(`${totalSemanas} Semanas`, 20, y + 12);
-    doc.text(`${totalJabas} un.`, 65, y + 12);
-    doc.text(`${totalPesoNeto.toFixed(2)} kg`, 110, y + 12);
-    doc.text(`$${totalGanancia.toFixed(2)}`, 155, y + 12);
+    doc.setFont("Helvetica", "bold"); doc.setFontSize(11); doc.setTextColor(27, 67, 50);
+    doc.text(`${totalJabas} un.`, 20, y + 12); doc.text(`${totalPesoNeto.toFixed(2)} kg`, 90, y + 12); doc.text(`$${totalGanancia.toFixed(2)}`, 150, y + 12);
 
     y += 30;
-    doc.setFont("Helvetica", "bold");
-    doc.setFontSize(12);
-    doc.setTextColor(27, 67, 50);
-    doc.text("RESUMEN CONSOLIDADO POR SEMANA", 18, y);
-    doc.setFillColor(45, 106, 79);
-    doc.rect(14, y - 4, 2.5, 5.5, 'F');
-
-    let filasResumen = [];
-    for(let sem in resumenSemanas){
-        filasResumen.push([
-            `Semana ${sem.padStart(2, '0')}`,
-            `${resumenSemanas[sem].jabas} un.`,
-            `${resumenSemanas[sem].peso.toFixed(2)} kg`,
-            `$${resumenSemanas[sem].total.toFixed(2)}`
-        ]);
-    }
-
-    doc.autoTable({
-        startY: y + 4,
-        head: [["Semana", "Jabas Totales", "Peso Neto Acumulado", "Ganancia Total (USD)"]],
-        body: filasResumen,
-        theme: "striped",
-        headStyles: { fillColor: [45, 106, 79], textColor: [255, 255, 255], fontStyle: "bold", halign: "center" },
-        bodyStyles: { halign: "center", fontSize: 9 },
-        columnStyles: {
-            0: { fontStyle: "bold" },
-            3: { fontStyle: "bold", textColor: [27, 67, 50] }
-        },
-        margin: { left: 14, right: 14 }
-    });
-
-    y = doc.lastAutoTable.finalY + 12;
-    if (y > 240) { doc.addPage(); y = 20; } 
-
-    doc.setFont("Helvetica", "bold");
-    doc.setFontSize(12);
-    doc.setTextColor(27, 67, 50);
-    doc.text("HISTORIAL DETALLADO DE ENVÍO DIARIO", 18, y);
-    doc.setFillColor(45, 106, 79);
-    doc.rect(14, y - 4, 2.5, 5.5, 'F');
-
     let filasDetalle = [];
     datos.forEach(item => {
         filasDetalle.push([
-            String(item.semana).padStart(2, '0'),
-            String(item.dia).padStart(2, '0'),
-            item.fecha,
-            item.jabas,
-            item.peso.toFixed(2),
-            item.tara.toFixed(2),
-            item.pesoNeto.toFixed(2),
-            `$${item.precio.toFixed(2)}`,
-            `$${item.total.toFixed(2)}`
+            String(item.semana).padStart(2, '0'), String(item.dia).padStart(2, '0'), item.fecha,
+            item.jabas, item.peso.toFixed(2), item.tara.toFixed(2), item.pesoNeto.toFixed(2),
+            `$${item.precio.toFixed(2)}`, `$${item.total.toFixed(2)}`
         ]);
     });
 
     doc.autoTable({
-        startY: y + 4,
+        startY: y,
         head: [["Sem", "Día", "Fecha", "Jabas", "P. Bruto", "Tara", "P. Neto", "Precio", "Total ($)"]],
         body: filasDetalle,
         theme: "striped",
-        headStyles: { fillColor: [45, 106, 79], textColor: [255, 255, 255], fontStyle: "bold", halign: "center" },
+        headStyles: { fillColor: [45, 106, 79], textColor: [255, 255, 255], halign: "center" },
         bodyStyles: { halign: "center", fontSize: 8.5 },
-        columnStyles: {
-            6: { fontStyle: "bold", textColor: [45, 106, 79] }, 
-            8: { fontStyle: "bold", textColor: [27, 67, 50] }  
-        },
         margin: { left: 14, right: 14 },
         didDrawPage: function (data) {
-            doc.setFont("Helvetica", "normal");
-            doc.setFontSize(8);
-            doc.setTextColor(113, 128, 150);
-            doc.text("Campos Dora Graciela — Sistema de Control de Espárragos", 14, 287);
+            doc.setFontSize(8); doc.setTextColor(113, 128, 150);
+            doc.text(`Campos Dora Graciela — Campaña ${campanaActiva}`, 14, 287);
             doc.text("Página " + data.pageNumber, 196, 287, { align: "right" });
         }
     });
 
-    doc.save("Reporte_Profesional_Esparragos.pdf");
+    doc.save(`Reporte_Campaña_${campanaActiva}.pdf`);
 }
 
 function cerrarSesion(){
-    localStorage.removeItem("sesionActiva");
-    localStorage.removeItem("horaLogin");
+    localStorage.removeItem("sesionActiva"); localStorage.removeItem("horaLogin");
     window.location.href = "login.html";
 }
