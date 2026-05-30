@@ -124,7 +124,7 @@ body {
     color: #94a3b8;
 }
 
-/* COLUMNA DERECHA: Formulario Corregido */
+/* COLUMNA DERECHA: Formulario */
 .login-body {
     flex: 1.2;
     padding: 50px 45px;
@@ -145,10 +145,9 @@ body {
     align-items: center;
 }
 
-/* Input alineado para evitar saltos de línea */
 .input-contenedor input {
     width: 100%;
-    padding: 18px 45px 14px 16px; /* Espacio extra a la derecha para el ojo */
+    padding: 18px 45px 14px 16px;
     border: 1.5px solid #cbd5e1;
     border-radius: 10px;
     font-size: 1rem;
@@ -158,7 +157,7 @@ body {
     transition: all 0.2s ease;
 }
 
-/* ETIQUETAS FLOTANTES FIJADAS EN EL CENTRO */
+/* ETIQUETAS FLOTANTES FIJADAS */
 .input-contenedor label {
     position: absolute;
     left: 16px;
@@ -177,15 +176,17 @@ body {
     margin-right: 6px;
 }
 
-/* Corrección de elevación al enfocar o rellenar */
+/* Elevación de etiqueta compatible con laptops y autocompletado */
 .input-contenedor input:focus ~ label,
-.input-contenedor input:not(:placeholder-shown) ~ label {
+.input-contenedor input:not(:placeholder-shown) ~ label,
+.input-contenedor input:-webkit-autofill ~ label {
     top: 0;
     font-size: 0.8rem;
     color: #2d6a4f;
     font-weight: 600;
-    background-color: #ffffff; /* Tapar la línea del borde del input */
+    background-color: #ffffff;
     transform: translateY(-50%);
+    z-index: 11;
 }
 
 .input-contenedor input:focus {
@@ -194,7 +195,7 @@ body {
     box-shadow: 0 0 0 4px rgba(45, 106, 79, 0.12);
 }
 
-/* ICONO DEL OJO ALINEADO CORRECTAMENTE */
+/* ICONO DEL OJO INTERNO */
 .icono-ojo {
     position: absolute;
     right: 16px;
@@ -204,7 +205,7 @@ body {
     cursor: pointer;
     font-size: 1.2rem;
     transition: color 0.2s;
-    z-index: 10;
+    z-index: 12;
     padding: 5px;
 }
 
@@ -253,7 +254,7 @@ body {
     text-align: center;
     margin-top: 25px;
     font-size: 0.8rem;
-    color: #e2e8f0;
+    color: #cbd5e1;
 }
 
 @media screen and (max-width: 720px) {
