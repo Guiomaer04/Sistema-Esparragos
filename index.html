@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Control de Espárragos</title>
-
     <link rel="stylesheet" href="estilos.css">
 </head>
 <body>
@@ -12,129 +11,101 @@
     <div class="contenedor">
 
         <div class="top-bar">
-
             <div>
                 <h1>🌱 Sistema de Control de Espárragos</h1>
-
-                <p class="subtitulo">
-                    Campaña de cosecha de espárragos
-                    "Campos Dora Graciela"
-                </p>
-
-                <p class="visitas">
-                    Visitas al sistema:
-                    <span id="contadorVisitas">0</span>
-                </p>
+                <p class="subtitulo">Campaña de cosecha de espárragos "Campos Dora Graciela"</p>
+                <p class="visitas">Visitas al sistema: <span id="contadorVisitas">0</span></p>
             </div>
-
-            <button
-                class="cerrar-btn"
-                onclick="cerrarSesion()">
-                Cerrar sesión
-            </button>
-
+            <button class="cerrar-btn" onclick="cerrarSesion()">Cerrar sesión</button>
         </div>
 
-        <!-- RESUMEN GENERAL -->
-
+        <h2 class="seccion-titulo">📊 Resumen General de Campaña</h2>
         <div class="resumen">
-
             <div class="card">
                 <h3>Total Jabas</h3>
                 <span id="totalJabas">0</span>
             </div>
-
             <div class="card">
                 <h3>Peso Neto</h3>
                 <span id="totalPeso">0.00 kg</span>
             </div>
-
             <div class="card">
                 <h3>Total Ganado</h3>
                 <span id="totalGanado">$0.00</span>
             </div>
-
         </div>
 
-        <!-- RESUMEN SEMANAL -->
+        <h2 class="seccion-titulo">📅 Totales por Semana</h2>
+        <div class="resumen" id="resumenSemanal"></div>
 
-        <div id="resumenSemanal"></div>
-
-        <!-- FORMULARIO -->
-
+        <h2 class="seccion-titulo">📝 Registrar Nueva Cosecha</h2>
         <div class="formulario">
+            <div class="grupo-input">
+                <label for="semana">Semana:</label>
+                <input type="number" id="semana" min="1">
+            </div>
 
-            <label>Semana:</label>
-            <input type="number" id="semana">
+            <div class="grupo-input">
+                <label for="dia">Día:</label>
+                <input type="number" id="dia" min="1" max="7">
+            </div>
 
-            <label>Día:</label>
-            <input type="number" id="dia">
+            <div class="grupo-input">
+                <label for="fecha">Fecha:</label>
+                <input type="date" id="fecha">
+            </div>
 
-            <label>Fecha:</label>
-            <input type="date" id="fecha">
+            <div class="grupo-input">
+                <label for="jabas">Jabas:</label>
+                <input type="number" id="jabas" min="1">
+            </div>
 
-            <label>Jabas:</label>
-            <input type="number" id="jabas">
+            <div class="grupo-input">
+                <label for="peso">Peso bruto (kg):</label>
+                <input type="number" id="peso" step="0.01" min="0">
+            </div>
 
-            <label>Peso bruto (kg):</label>
-            <input type="number" id="peso" step="0.01">
+            <div class="grupo-input">
+                <label for="precio">Precio por kg ($):</label>
+                <input type="number" id="precio" step="0.01" min="0">
+            </div>
 
-            <label>Precio ($):</label>
-            <input type="number" id="precio" step="0.01">
-
-            <button id="btnGuardar"
-                    onclick="agregarFila()">
-                Agregar Registro
-            </button>
-
-            <button onclick="descargarPDF()">
-                📄 Descargar PDF
-            </button>
-
-            <button onclick="exportarExcel()">
-                📊 Descargar Excel
-            </button>
-
+            <div class="acciones-form">
+                <button id="btnGuardar" class="btn-principal" onclick="agregarFila()">Agregar Registro</button>
+                <button class="btn-pdf" onclick="descargarPDF()">📄 Descargar PDF</button>
+                <button class="btn-excel" onclick="exportarExcel()">📊 Descargar Excel</button>
+            </div>
         </div>
 
-        <!-- TABLA -->
-
-        <table id="tabla">
-
-            <thead>
-                <tr>
-                    <th>Semana</th>
-                    <th>Día</th>
-                    <th>Fecha</th>
-                    <th>Jabas</th>
-                    <th>Peso Bruto</th>
-                    <th>Tara</th>
-                    <th>Peso Neto</th>
-                    <th>Precio</th>
-                    <th>Total</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-
-            <tbody></tbody>
-
-        </table>
+        <h2 class="seccion-titulo">📋 Historial de Registros</h2>
+        <div style="overflow-x: auto;">
+            <table id="tabla">
+                <thead>
+                    <tr>
+                        <th>Semana</th>
+                        <th>Día</th>
+                        <th>Fecha</th>
+                        <th>Jabas</th>
+                        <th>Peso Bruto</th>
+                        <th>Tara (1.6kg)</th>
+                        <th>Peso Neto</th>
+                        <th>Precio</th>
+                        <th>Total</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
 
         <footer>
-            Creado por:
-            <strong>
-                William Guiomar Andia De La Cruz
-            </strong>
+            Campañas Agrícolas &copy; 2026 | Desarrollado por: <strong>William Guiomar Andia De La Cruz</strong>
         </footer>
 
     </div>
 
-    <!-- LIBRERÍAS PDF -->
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-
     <script src="script.js"></script>
 
 </body>
