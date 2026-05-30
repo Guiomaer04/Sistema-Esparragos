@@ -73,3 +73,30 @@ function iniciarSesion() {
 // Escuchar teclas Enter
 document.getElementById("usuario").addEventListener("keyup", function(e) { if (e.key === "Enter") iniciarSesion(); });
 document.getElementById("password").addEventListener("keyup", function(e) { if (e.key === "Enter") iniciarSesion(); });
+
+
+// CORRECCIÓN DE ESTÉTICA PARA LAPTOPS (Previene la superposición por autocompletado)
+function verificarCamposRellenos() {
+    const usuarioInput = document.getElementById("usuario");
+    const passwordInput = document.getElementById("password");
+
+    if (usuarioInput && usuarioInput.value.length > 0) {
+        usuarioInput.setAttribute("placeholder", "Filled");
+    } else if (usuarioInput) {
+        usuarioInput.setAttribute("placeholder", " ");
+    }
+
+    if (passwordInput && passwordInput.value.length > 0) {
+        passwordInput.setAttribute("placeholder", "Filled");
+    } else if (passwordInput) {
+        passwordInput.setAttribute("placeholder", " ");
+    }
+}
+
+// Monitorear de forma constante el autocompletado en laptops
+window.addEventListener("DOMContentLoaded", () => {
+    verificarCamposRellenos();
+    setTimeout(verificarCamposRellenos, 100);
+    setTimeout(verificarCamposRellenos, 500);
+    setInterval(verificarCamposRellenos, 1000);
+});
