@@ -1,221 +1,4 @@
-/* ==========================================================================
-   DISEÑO DE LOGIN PREMIUM - CAMPOS DORA GRACIELA
-   ========================================================================== */
-
 * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    /* Degradado fluido premium */
-    background: linear-gradient(135deg, #112d21 0%, #22513c 50%, #357a58 100%);
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    overflow: hidden;
-}
-
-/* Círculos decorativos de fondo para eliminar la sensación de vacío global */
-body::before, body::after {
-    content: "";
-    position: absolute;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(5px);
-    z-index: 1;
-}
-body::before { width: 400px; height: 400px; top: -10%; left: -5%; }
-body::after { width: 300px; height: 300px; bottom: -5%; right: -5%; }
-
-/* Contenedor con animación de entrada */
-.login-wrapper {
-    width: 100%;
-    max-width: 800px; /* Más ancho para el formato horizontal */
-    padding: 20px;
-    z-index: 2;
-    animation: entradaSuave 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-/* Tarjeta dividida en dos columnas */
-.login-card {
-    background: #ffffff;
-    display: flex;
-    border-radius: 16px;
-    overflow: hidden; /* Corta las esquinas del panel izquierdo */
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.35);
-    min-height: 420px;
-}
-
-/* COLUMNA IZQUIERDA: Panel de marca elegante */
-.login-header {
-    flex: 1;
-    background: linear-gradient(135deg, #1b4332 0%, #0f271c 100%);
-    padding: 40px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    color: #ffffff;
-    position: relative;
-}
-
-/* Decoración lineal interna en el panel verde */
-.login-header::after {
-    content: "";
-    position: absolute;
-    top: 15px; bottom: 15px; left: 15px; right: 15px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 12px;
-    pointer-events: none;
-}
-
-.logo-icono {
-    background-color: rgba(255, 255, 255, 0.1);
-    color: #52b788;
-    width: 75px;
-    height: 75px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 20px;
-    font-size: 2.2rem;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-}
-
-.login-header h1 {
-    font-size: 1.8rem;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    line-height: 1.2;
-    margin-bottom: 10px;
-    text-transform: uppercase;
-}
-
-.login-header p {
-    font-size: 0.95rem;
-    color: #b7e4c7;
-    font-weight: 300;
-}
-
-/* COLUMNA DERECHA: Formulario de entrada */
-.login-body {
-    flex: 1.2;
-    padding: 45px 40px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-
-.grupo-input-login {
-    margin-bottom: 22px;
-}
-
-.grupo-input-login label {
-    display: block;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #475569;
-    margin-bottom: 8px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.grupo-input-login label i {
-    color: #2d6a4f;
-    margin-right: 6px;
-    font-size: 0.95rem;
-}
-
-.input-contenedor input {
-    width: 100%;
-    padding: 12px 16px;
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    font-size: 1rem;
-    color: #1e293b;
-    background-color: #f8fafc;
-    outline: none;
-    transition: all 0.2s ease;
-}
-
-/* Foco interactivo al hacer clic */
-.input-contenedor input:focus {
-    border-color: #2d6a4f;
-    background-color: #ffffff;
-    box-shadow: 0 0 0 4px rgba(45, 106, 79, 0.15);
-}
-
-/* Alertas de error integradas limpiamente */
-.mensaje-error {
-    color: #d90429;
-    font-size: 0.85rem;
-    font-weight: 500;
-    margin-bottom: 15px;
-    min-height: 18px;
-}
-
-/* Botón de acción principal */
-.btn-login {
-    width: 100%;
-    padding: 14px;
-    background: linear-gradient(135deg, #2d6a4f 0%, #1b4332 100%);
-    color: #ffffff;
-    border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: bold;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    box-shadow: 0 4px 12px rgba(45, 106, 79, 0.25);
-    transition: all 0.2s ease;
-}
-
-.btn-login:hover {
-    background: linear-gradient(135deg, #357a58 0%, #22513c 100%);
-    transform: translateY(-1px);
-    box-shadow: 0 6px 18px rgba(27, 67, 50, 0.35);
-}
-
-.btn-login:active {
-    transform: translateY(1px);
-}
-
-/* Pie de página integrado a la derecha */
-.login-footer {
-    margin-top: 25px;
-    border-top: 1px solid #f1f5f9;
-    padding-top: 15px;
-    text-align: center;
-}
-
-.login-footer p {
-    font-size: 0.75rem;
-    color: #94a3b8;
-}
-
-/* Ajuste responsivo para celulares */
-@media screen and (max-width: 680px) {
-    .login-card {
-        flex-direction: column;
-        min-height: auto;
-    }
-    .login-header {
-        padding: 30px 20px;
-    }
-    .login-body {
-        padding: 35px 25px;
-    }* {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
@@ -251,7 +34,6 @@ body {
     animation: moverParticula 15s infinite linear;
 }
 
-/* Tamaños y posiciones aleatorias para las partículas */
 .particula:nth-child(1) { width: 80px; height: 80px; top: 10%; left: 10%; animation-duration: 12s; }
 .particula:nth-child(2) { width: 120px; height: 120px; top: 60%; left: 80%; animation-duration: 18s; }
 .particula:nth-child(3) { width: 60px; height: 60px; top: 80%; left: 20%; animation-duration: 10s; }
@@ -295,10 +77,8 @@ body {
     align-items: center;
     text-align: center;
     color: #ffffff;
-    border-right: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* RECOMENDACIÓN: LOGOTIPO CON ANIMACIÓN FLOTANTE SUAVE */
 .logo-icono {
     background-color: rgba(255, 255, 255, 0.08);
     color: #52b788;
@@ -344,75 +124,77 @@ body {
     color: #94a3b8;
 }
 
-/* COLUMNA DERECHA: Formulario */
+/* COLUMNA DERECHA: Formulario Corregido */
 .login-body {
     flex: 1.2;
     padding: 50px 45px;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    background-color: #f8fafc;
+    background-color: #ffffff;
 }
 
-/* ==========================================================================
-   RECOMENDACIÓN: CAJAS DE TEXTO CON ETIQUETAS FLOTANTES (ESTILO GOOGLE)
-   ========================================================================== */
 .grupo-input-login {
-    margin-bottom: 25px;
+    margin-bottom: 28px;
 }
 
 .input-contenedor {
     position: relative;
     width: 100%;
+    display: flex;
+    align-items: center;
 }
 
+/* Input alineado para evitar saltos de línea */
 .input-contenedor input {
     width: 100%;
-    padding: 16px 16px 12px 16px;
+    padding: 18px 45px 14px 16px; /* Espacio extra a la derecha para el ojo */
     border: 1.5px solid #cbd5e1;
     border-radius: 10px;
     font-size: 1rem;
     color: #1e293b;
-    background-color: #ffffff;
+    background-color: #f8fafc;
     outline: none;
-    transition: all 0.2s ease-index;
+    transition: all 0.2s ease;
 }
 
-/* Texto de la etiqueta en posición inicial */
+/* ETIQUETAS FLOTANTES FIJADAS EN EL CENTRO */
 .input-contenedor label {
     position: absolute;
     left: 16px;
     top: 50%;
     transform: translateY(-50%);
-    background: transparent;
-    padding: 0 4px;
     color: #64748b;
     font-size: 1rem;
+    font-weight: 500;
     pointer-events: none;
-    transition: all 0.2s ease;
+    transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+    background-color: transparent;
+    padding: 0 4px;
 }
 
 .input-contenedor label i {
-    margin-right: 4px;
+    margin-right: 6px;
 }
 
-/* Animación de elevación al hacer clic o si ya hay texto dentro */
+/* Corrección de elevación al enfocar o rellenar */
 .input-contenedor input:focus ~ label,
 .input-contenedor input:not(:placeholder-shown) ~ label {
     top: 0;
     font-size: 0.8rem;
     color: #2d6a4f;
     font-weight: 600;
-    background: #ffffff;
+    background-color: #ffffff; /* Tapar la línea del borde del input */
     transform: translateY(-50%);
 }
 
 .input-contenedor input:focus {
     border-color: #2d6a4f;
+    background-color: #ffffff;
     box-shadow: 0 0 0 4px rgba(45, 106, 79, 0.12);
 }
 
-/* RECOMENDACIÓN: BOTÓN MOSTRAR/OCULTAR CONTRASEÑA */
+/* ICONO DEL OJO ALINEADO CORRECTAMENTE */
 .icono-ojo {
     position: absolute;
     right: 16px;
@@ -420,9 +202,10 @@ body {
     transform: translateY(-50%);
     color: #94a3b8;
     cursor: pointer;
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     transition: color 0.2s;
-    z-index: 5;
+    z-index: 10;
+    padding: 5px;
 }
 
 .icono-ojo:hover {
@@ -439,9 +222,7 @@ body {
     text-align: center;
 }
 
-/* ==========================================================================
-   RECOMENDACIÓN: BOTÓN CON SPINNER DE CARGA
-   ========================================================================== */
+/* Botón de ingreso */
 .btn-login {
     width: 100%;
     padding: 15px;
@@ -467,15 +248,14 @@ body {
 
 .oculto { display: none !important; }
 
-/* Footer externo */
+/* Footer */
 .login-footer p {
     text-align: center;
     margin-top: 25px;
     font-size: 0.8rem;
-    color: #64748b;
+    color: #e2e8f0;
 }
 
-/* Diseño Responsivo para Celulares */
 @media screen and (max-width: 720px) {
     .login-card { flex-direction: column; min-height: auto; }
     .login-header { padding: 35px 20px; }
@@ -485,17 +265,4 @@ body {
 @keyframes entradaSuave {
     from { opacity: 0; transform: translateY(30px); }
     to { opacity: 1; transform: translateY(0); }
-}
-}
-
-/* Animaciones */
-@keyframes entradaSuave {
-    from {
-        opacity: 0;
-        transform: translateY(25px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
 }
