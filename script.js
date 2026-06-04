@@ -56,6 +56,7 @@ document.addEventListener("DOMContentLoaded", function(){
     construirSelectorCampanas();
     mostrarDatos();
     sugerirSiguienteDia();
+    verificarEstadoCampana(); // Revisa si la campaña actual está cerrada al cargar
 });
 
 /* ==========================================================================
@@ -83,11 +84,14 @@ function cambiarCampana(nuevoCodigo) {
     
     document.getElementById("nombreCampanaTitulo").textContent = "Campaña " + campanaActiva;
     indiceEdicion = -1;
-    document.getElementById("btnGuardar").innerHTML = '<i class="fa-solid fa-plus"></i> Agregar Registro';
+    
+    let btnGuardar = document.getElementById("btnGuardar");
+    if (btnGuardar) btnGuardar.innerHTML = '<i class="fa-solid fa-plus"></i> Agregar Registro';
     
     limpiarFiltros();
     mostrarDatos();
     sugerirSiguienteDia();
+    verificarEstadoCampana(); // Evalúa el estado de la nueva campaña seleccionada
 }
 
 function crearNuevaCampana() {
@@ -109,6 +113,90 @@ function crearNuevaCampana() {
     
     construirSelectorCampanas();
     cambiarCampana(nuevoCodigo);
+}
+
+/* ==========================================================================
+   CIERRE DE CAMPAÑA DEFINITIVO
+   ========================================================================== */
+function confirmarCierreCampana() {
+    // Comprobar si ya está cerrada
+    let cierresViejos = JSON.parse(localStorage.getItem("campanasCerradasListado")) || [];
+    if (cierresViejos.includes(campanaActiva)) {
+        alert("Esta campaña ya se encuentra archivada y cerrada.");
+        return;
+    }
+
+    let totalJavas = 0;
+    let totalPesoNeto = 0;
+    let totalGanancia = 0;
+
+    datos.forEach(item => {
+        totalJavas += item.jabas;
+        totalPesoNeto += item.pesoNeto;
+        totalGanancia += item.total;
+    });
+
+    let mensajeConfirmacion = 
+        `¿ESTÁS SEGURO DE HACER UN CIERRE DE CAMPAÑA?\n\n` +
+        `Esta acción es definitiva para la Temporada Activa de los Campos Dora Graciela.\n` +
+        `Una vez ejecutada, la información quedará protegida e inmutable.\n\n` +
+        `RESUMEN FINAL ACUMULADO (${campanaActiva}):\n` +
+        `📦 Total de Javas cosechadas: ${totalJavas}\n` +
+        `⚖️ Peso Neto Total: ${totalPesoNeto.toFixed(2)} kg\n` +
+        `💰 Total Liquidado: $${totalGanancia.toFixed(2)}\n\n` +
+        `Presiona ACEPTAR para proceder al cierre total del campo.`;
+
+    if (confirm(mensajeConfirmacion)) {
+        cierresViejos.push(campanaActiva);
+        localStorage.setItem("campanasCerradasListado", JSON.stringify(cierresViejos));
+        alert(`🔒 Campaña ${campanaActiva} cerrada de forma exitosa. Los registros han sido archivados.`);
+        verificarEstadoCampana();
+    }
+}
+
+function verificarEstadoCampana() {
+    let cierresListado = JSON.parse(localStorage.getItem("campanasCerradasListado")) || [];
+    const badge = document.getElementById("estadoCampana");
+    const btnCierre = document.getElementById("btnCerrarCampana");
+    const btnGuardar = document.getElementById("btnGuardar");
+
+    if (cierresListado.includes(campanaActiva)) {
+        if (badge) {
+            badge.className = "badge-cerrada";
+            badge.innerHTML = `<i class="fa-solid fa-lock"></i> CERRADA`;
+        }
+        if (btnCierre) {
+            btnCierre.className = "btn-cierre btn-desactivado";
+            btnCierre.innerHTML = `<i class="fa-solid fa-file-invoice"></i> Campo Archivado`;
+        }
+        if (btnGuardar) {
+            btnGuardar.disabled = true;
+            btnGuardar.style.opacity = "0.5";
+            btnGuardar.innerHTML = `<i class="fa-solid fa-ban"></i> Campaña Cerrada`;
+        }
+    } else {
+        if (badge) {
+            badge.className = "badge-activa";
+            badge.innerHTML = `<i class="fa-solid fa-circle-dot"></i> ACTIVA`;
+        }
+        if (btnCierre) {
+            btnCierre.className = "btn-cierre";
+            btnCierre.innerHTML = `<i class="fa-solid fa-box-archive"></i> Cerrar Campaña`;
+        }
+        if (btnGuardar) {
+            btnGuardar.disabled = false;
+            btnGuardar.style.opacity = "1";
+            btnGuardar.innerHTML = indiceEdicion >= 0 ? '<i class="fa-solid fa-floppy-disk"></i> Guardar Cambios' : '<i class="fa-solid fa-plus"></i> Agregar Registro';
+        }
+    }
+}
+
+// Función auxiliar por si necesitas reabrirla desde la consola del desarrollador
+function reabrirCampanaConsola(codigo) {
+    let cierres = JSON.parse(localStorage.getItem("campanasCerradasListado")) || [];
+    cierres = cierres.filter(c => c !== codigo);
+    localStorage.setItem("campanasCerradasListado", JSON.stringify(cierres));
+    location.reload();
 }
 
 /* =========================
@@ -145,11 +233,18 @@ function sugerirSiguienteDia() {
     document.getElementById("dia").value = dia;
     
     let ultimaFecha = new Date(ultimoRegistro.fecha + "T00:00:00");
-    ultimaFecha.setDate(ultimaFecha.getDate() + 1);
+    let (ultimaFecha.getDate() + 1);
     document.getElementById("fecha").value = ultimaFecha.toISOString().split('T')[0];
 }
 
 function agregarFila(){
+    // Validar bloqueo por cierre
+    let cierresListado = JSON.parse(localStorage.getItem("campanasCerradasListado")) || [];
+    if (cierresListado.includes(campanaActiva)) {
+        alert("⛔ Operación denegada. La campaña se encuentra archivada y protegida contra modificaciones.");
+        return;
+    }
+
     let semana = parseInt(document.getElementById("semana").value);
     let dia = parseInt(document.getElementById("dia").value);
     let fecha = document.getElementById("fecha").value;
@@ -192,9 +287,15 @@ function actualizarSelectFiltroSemanas() {
     let valorSeleccionado = select.value;
     select.innerHTML = '<option value="todos">Mostrar Todas</option>';
     
-    let semanasUnicas = [...new Set(datos.map(item => item.semana))].sort((a,b)=>a-b);
+    // CORRECCIÓN: Normalizar la extracción de semanas únicas para el filtro dropdown
+    let semanasUnicas = [...new Set(datos.map(item => {
+        let num = parseInt(String(item.semana).replace(/\D/g, ""), 10);
+        return isNaN(num) ? 1 : num;
+    }))].sort((a,b)=>a-b);
+
     semanasUnicas.forEach(sem => {
-        select.innerHTML += `<option value="${sem}">Semana ${sem}</option>`;
+        let semFormat = String(sem).padStart(2, '0');
+        select.innerHTML += `<option value="${sem}">Semana ${semFormat}</option>`;
     });
     select.value = valorSeleccionado;
 }
@@ -205,7 +306,8 @@ function filtrarYMostrar() {
     let fechaFin = document.getElementById("filtroFechaFin").value;
 
     let datosFiltrados = datos.filter(item => {
-        let cumpleSemana = (filtroSem === "todos" || parseInt(item.semana) === parseInt(filtroSem));
+        let itemSemNum = parseInt(String(item.semana).replace(/\D/g, ""), 10);
+        let cumpleSemana = (filtroSem === "todos" || itemSemNum === parseInt(filtroSem));
         let cumpleFecha = true;
         if(fechaInicio) { cumpleFecha = cumpleFecha && (item.fecha >= fechaInicio); }
         if(fechaFin) { cumpleFecha = cumpleFecha && (item.fecha <= fechaFin); }
@@ -252,10 +354,11 @@ function renderizarTablaHTML(listaParaMostrar) {
 
     listaParaMostrar.forEach((item)=>{
         let indexReal = datos.findIndex(d => d === item);
+        let semDisplay = String(item.semana).replace(/\D/g, "").padStart(2, '0');
 
         tbody.innerHTML += `
         <tr>
-            <td data-label="Semana"><strong>Semana ${item.semana}</strong></td>
+            <td data-label="Semana"><strong>Semana ${semDisplay}</strong></td>
             <td data-label="Día">Día ${item.dia}</td>
             <td data-label="Fecha">${item.fecha}</td>
             <td data-label="Jabas">${item.jabas}</td>
@@ -273,8 +376,14 @@ function renderizarTablaHTML(listaParaMostrar) {
 }
 
 function editarFila(index){
+    let cierresListado = JSON.parse(localStorage.getItem("campanasCerradasListado")) || [];
+    if (cierresListado.includes(campanaActiva)) {
+        alert("⛔ No se pueden editar registros en una campaña archivada.");
+        return;
+    }
+
     let item = datos[index];
-    document.getElementById("semana").value = item.semana;
+    document.getElementById("semana").value = parseInt(String(item.semana).replace(/\D/g, ""), 10);
     document.getElementById("dia").value = item.dia;
     document.getElementById("fecha").value = item.fecha;
     document.getElementById("jabas").value = item.jabas;
@@ -287,6 +396,12 @@ function editarFila(index){
 }
 
 function eliminarFila(index){
+    let cierresListado = JSON.parse(localStorage.getItem("campanasCerradasListado")) || [];
+    if (cierresListado.includes(campanaActiva)) {
+        alert("⛔ No se pueden eliminar registros en una campaña archivada.");
+        return;
+    }
+
     if(confirm("¿Está seguro de que desea eliminar este registro?")){
         datos.splice(index, 1);
         guardarDatos();
@@ -301,7 +416,8 @@ function ordenarTabla(criterio) {
         let valA = a[criterio];
         let valB = b[criterio];
         if (criterio === 'semana' || criterio === 'total') {
-            valA = parseFloat(valA); valB = parseFloat(valB);
+            valA = parseFloat(String(valA).replace(/\D/g, "")); 
+            valB = parseFloat(String(valB).replace(/\D/g, ""));
         }
         if (valA < valB) return ordenAscendente ? -1 : 1;
         if (valA > valB) return ordenAscendente ? 1 : -1;
@@ -310,13 +426,25 @@ function ordenarTabla(criterio) {
     mostrarDatos();
 }
 
+/* ==========================================================================
+   🛠️ SOLUCIÓN AL ERROR DE DUPLICACIÓN DE TARJETAS SEMANALES
+   ========================================================================== */
 function obtenerResumenPorSemanas() {
     let resumen = {};
     datos.forEach(item=>{
-        if(!resumen[item.semana]){ resumen[item.semana] = { jabas: 0, peso: 0, total: 0 }; }
-        resumen[item.semana].jabas += item.jabas;
-        resumen[item.semana].peso += item.pesoNeto;
-        resumen[item.semana].total += item.total;
+        // Extraemos solo el número entero de la semana (por si viene como "Semana 5", "5" o "05")
+        let numeroLimpio = parseInt(String(item.semana).replace(/\D/g, ""), 10);
+        if (isNaN(numeroLimpio)) numeroLimpio = 1;
+        
+        // Lo formateamos forzosamente con dos dígitos siempre: "05"
+        let semanaNormalizada = String(numeroLimpio).padStart(2, '0');
+
+        if(!resumen[semanaNormalizada]){ 
+            resumen[semanaNormalizada] = { jabas: 0, peso: 0, total: 0 }; 
+        }
+        resumen[semanaNormalizada].jabas += item.jabas;
+        resumen[semanaNormalizada].peso += item.pesoNeto;
+        resumen[semanaNormalizada].total += item.total;
     });
     return resumen;
 }
@@ -327,7 +455,8 @@ function mostrarResumenSemanal(){
     let resumen = obtenerResumenPorSemanas();
     let html = "";
 
-    for(let semana in resumen){
+    // Obtenemos las claves ordenadas ("01", "02", "03", "04", "05"...)
+    Object.keys(resumen).sort().forEach(semana => {
         html += `
         <div class="card" style="border-top: 4px solid #2d6a4f; display:block;">
             <h3 style="color:#2d6a4f; font-weight:bold; margin-bottom:8px;">Semana ${semana}</h3>
@@ -335,7 +464,7 @@ function mostrarResumenSemanal(){
             <p style="margin:4px 0;">⚖️ Peso Neto: <strong>${resumen[semana].peso.toFixed(2)} kg</strong></p>
             <p style="margin:4px 0;">💰 Ganancia: <strong style="color:#2d6a4f;">$${resumen[semana].total.toFixed(2)}</strong></p>
         </div>`;
-    }
+    });
     contenedor.innerHTML = html || "<p style='color:gray; padding:10px;'>No hay registros ingresados todavía.</p>";
 }
 
@@ -351,13 +480,17 @@ function calcularYMostrarModuloComparativo() {
     let gananciasCampanas = [];
     let pesoCampanas = [];
 
-    // Recorremos todas las campañas creadas en el sistema
     let codigos = Object.keys(baseDatosCampanas.lista).sort();
 
     codigos.forEach(cod => {
         let registrosCamp = baseDatosCampanas.lista[cod] || [];
         
-        let semanasUnicas = [...new Set(registrosCamp.map(item => item.semana))].length;
+        // Contar semanas únicas normalizadas
+        let semanasUnicas = [...new Set(registrosCamp.map(item => {
+            let n = parseInt(String(item.semana).replace(/\D/g, ""), 10);
+            return isNaN(n) ? 1 : n;
+        }))].length;
+
         let tJabas = 0, tPeso = 0, tGanado = 0;
 
         registrosCamp.forEach(item => {
@@ -366,7 +499,6 @@ function calcularYMostrarModuloComparativo() {
             tGanado += item.total;
         });
 
-        // Llenamos la tabla analítica inferior
         tbody.innerHTML += `
         <tr>
             <td><strong>Campaña ${cod}</strong></td>
@@ -376,13 +508,11 @@ function calcularYMostrarModuloComparativo() {
             <td style="color:#0284c7; font-weight:bold;">$${tGanado.toFixed(2)}</td>
         </tr>`;
 
-        // Datos para alimentar el gráfico comparativo cruzado
         labelsCampanas.push("Campaña " + cod);
         gananciasCampanas.push(tGanado.toFixed(2));
         pesoCampanas.push(tPeso.toFixed(2));
     });
 
-    // Renderizar Gráfico Comparativo de Barras Múltiples
     let ctxComp = document.getElementById('graficoComparativo');
     if (!ctxComp) return;
 
@@ -408,7 +538,7 @@ function calcularYMostrarModuloComparativo() {
                     borderColor: '#0d9488',
                     borderWidth: 1,
                     borderRadius: 4,
-                    hidden: true // Se puede encender al hacer clic en la leyenda
+                    hidden: true 
                 }
             ]
         },
@@ -511,6 +641,7 @@ function importarBackup(event) {
                     construirSelectorCampanas();
                     mostrarDatos();
                     sugerirSiguienteDia();
+                    verificarEstadoCampana();
                     alert("Sistema multi-campaña restaurado con éxito.");
                 }
             } else {
@@ -531,17 +662,21 @@ function exportarExcel(){
     if(datos.length === 0){ alert("No hay datos para exportar"); return; }
     let wb = XLSX.utils.book_new();
 
-    let mapearDatos = (lista) => lista.map(item => ({
-        "Semana": "Semana " + item.semana,
-        "Día": "Día " + item.dia,
-        "Fecha": item.fecha,
-        "Jabas": item.jabas,
-        "Peso Bruto (kg)": parseFloat(item.peso.toFixed(2)),
-        "Tara (kg)": parseFloat(item.tara.toFixed(2)),
-        "Peso Neto (kg)": parseFloat(item.pesoNeto.toFixed(2)),
-        "Precio ($)": parseFloat(item.precio.toFixed(2)),
-        "Total ($)": parseFloat(item.total.toFixed(2))
-    }));
+    let mapearDatos = (lista) => lista.map(item => {
+        let numSem = parseInt(String(item.semana).replace(/\D/g, ""), 10);
+        let semFormat = String(numSem).padStart(2, '0');
+        return {
+            "Semana": "Semana " + semFormat,
+            "Día": "Día " + item.dia,
+            "Fecha": item.fecha,
+            "Jabas": item.jabas,
+            "Peso Bruto (kg)": parseFloat(item.peso.toFixed(2)),
+            "Tara (kg)": parseFloat(item.tara.toFixed(2)),
+            "Peso Neto (kg)": parseFloat(item.pesoNeto.toFixed(2)),
+            "Precio ($)": parseFloat(item.precio.toFixed(2)),
+            "Total ($)": parseFloat(item.total.toFixed(2))
+        };
+    });
 
     let wsGeneral = XLSX.utils.json_to_sheet(mapearDatos(datos));
     XLSX.utils.book_append_sheet(wb, wsGeneral, `Historial — ${campanaActiva}`);
@@ -591,8 +726,10 @@ async function descargarPDF(){
     y += 30;
     let filasDetalle = [];
     datos.forEach(item => {
+        let numSem = parseInt(String(item.semana).replace(/\D/g, ""), 10);
+        let semFormat = String(numSem).padStart(2, '0');
         filasDetalle.push([
-            String(item.semana).padStart(2, '0'), String(item.dia).padStart(2, '0'), item.fecha,
+            semFormat, String(item.dia).padStart(2, '0'), item.fecha,
             item.jabas, item.peso.toFixed(2), item.tara.toFixed(2), item.pesoNeto.toFixed(2),
             `$${item.precio.toFixed(2)}`, `$${item.total.toFixed(2)}`
         ]);
