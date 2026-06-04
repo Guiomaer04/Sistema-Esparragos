@@ -24,25 +24,33 @@ localStorage.setItem("contadorVisitas", visitas);
    ========================================================================== */
 let baseDatosCampanas = JSON.parse(localStorage.getItem("sistemaCampanasEsparrafos"));
 
-// MIGRACIÓN AUTOMÁTICA: Si el usuario tiene datos viejos del sistema anterior, no los pierde.
+// MIGRACIÓN AUTOMÁTICA: Estructura adaptada para soportar datos de producción y préstamos.
 if (!baseDatosCampanas) {
     let datosViejos = JSON.parse(localStorage.getItem("esparragos"));
     if (datosViejos && datosViejos.length > 0) {
         baseDatosCampanas = {
             campanaActiva: "2026-1",
-            lista: { "2026-1": datosViejos }
+            lista: { "2026-1": datosViejos },
+            prestamos: { "2026-1": 0 }
         };
     } else {
         baseDatosCampanas = {
             campanaActiva: "2026-1",
-            lista: { "2026-1": [] }
+            lista: { "2026-1": [] },
+            prestamos: { "2026-1": 0 }
         };
     }
     localStorage.setItem("sistemaCampanasEsparrafos", JSON.stringify(baseDatosCampanas));
 }
 
+// Asegurar que exista el objeto de préstamos en datos recuperados de versiones previas
+if (!baseDatosCampanas.prestamos) {
+    baseDatosCampanas.prestamos = {};
+}
+
 let campanaActiva = baseDatosCampanas.campanaActiva || "2026-1";
 let datos = baseDatosCampanas.lista[campanaActiva] || [];
+let prestamoCampana = baseDatosCampanas.prestamos[campanaActiva] || 0;
 
 let indiceEdicion = -1;
 let miGraficoSemanas = null; 
@@ -56,7 +64,7 @@ document.addEventListener("DOMContentLoaded", function(){
     construirSelectorCampanas();
     mostrarDatos();
     sugerirSiguienteDia();
-    verificarEstadoCampana(); // Revisa si la campaña actual está cerrada al cargar
+    verificarEstadoCampana();
 });
 
 /* ==========================================================================
@@ -79,6 +87,7 @@ function cambiarCampana(nuevoCodigo) {
     campanaActiva = nuevoCodigo;
     baseDatosCampanas.campanaActiva = campanaActiva;
     datos = baseDatosCampanas.lista[campanaActiva] || [];
+    prestamoCampana = baseDatosCampanas.prestamos[campanaActiva] || 0;
     
     localStorage.setItem("sistemaCampanasEsparrafos", JSON.stringify(baseDatosCampanas));
     
@@ -91,7 +100,7 @@ function cambiarCampana(nuevoCodigo) {
     limpiarFiltros();
     mostrarDatos();
     sugerirSiguienteDia();
-    verificarEstadoCampana(); // Evalúa el estado de la nueva campaña seleccionada
+    verificarEstadoCampana();
 }
 
 function crearNuevaCampana() {
@@ -105,45 +114,106 @@ function crearNuevaCampana() {
     }
     
     baseDatosCampanas.lista[nuevoCodigo] = [];
+    baseDatosCampanas.prestamos[nuevoCodigo] = 0;
     baseDatosCampanas.campanaActiva = nuevoCodigo;
     localStorage.setItem("sistemaCampanasEsparrafos", JSON.stringify(baseDatosCampanas));
     
     campanaActiva = nuevoCodigo;
     datos = [];
+    prestamoCampana = 0;
     
     construirSelectorCampanas();
     cambiarCampana(nuevoCodigo);
 }
 
 /* ==========================================================================
+   GESTIÓN DE PRESTAMISTAS (NUEVO REGISTRO Y EDICIÓN COSECHA)
+   ========================================================================== */
+function ajustarPrestamo() {
+    // Validar si la campaña está archivada
+    let cierresListado = JSON.parse(localStorage.getItem("campanasCerradasListado")) || [];
+    if (cierresListado.includes(campanaActiva)) {
+        alert("⛔ Operación denegada. No puedes alterar las finanzas de una campaña archivada.");
+        return;
+    }
+
+    let mensaje = `Dinero actual facilitado por prestamistas en esta campaña: $${prestamoCampana.toFixed(2)}\n\n` +
+                  `• Para agregar un NUEVO préstamo a mitad de cosecha, escribe el monto con el signo más adelante (Ejemplo: +500)\n` +
+                  `• Para CORREGIR o cambiar la cantidad total por completo, escribe directamente el nuevo número (Ejemplo: 2500):`;
+                  
+    let entrada = prompt(mensaje);
+    if (entrada === null) return; // Cancelado
+
+    entrada = entrada.trim();
+    if (entrada.startsWith("+")) {
+        let montoExtra = parseFloat(entrada.replace("+", ""));
+        if (isNaN(montoExtra) || montoExtra <= 0) {
+            alert("Monto inválido ingresado.");
+            return;
+        }
+        prestamoCampana += montoExtra;
+    } else {
+        let nuevoMonto = parseFloat(entrada);
+        if (isNaN(nuevoMonto) || nuevoMonto < 0) {
+            alert("Monto inválido ingresado.");
+            return;
+        }
+        prestamoCampana = nuevoMonto;
+    }
+
+    guardarDatos();
+    mostrarDatos();
+    alert(`💰 Préstamo actualizado con éxito. Total financiado: $${prestamoCampana.toFixed(2)}`);
+}
+
+/* ==========================================================================
    CIERRE DE CAMPAÑA DEFINITIVO
    ========================================================================== */
 function confirmarCierreCampana() {
-    // Comprobar si ya está cerrada
     let cierresViejos = JSON.parse(localStorage.getItem("campanasCerradasListado")) || [];
     if (cierresViejos.includes(campanaActiva)) {
         alert("Esta campaña ya se encuentra archivada y cerrada.");
         return;
     }
 
-    let totalJavas = 0;
+    let totalJabas = 0;
     let totalPesoNeto = 0;
     let totalGanancia = 0;
 
     datos.forEach(item => {
-        totalJavas += item.jabas;
+        totalJabas += item.jabas;
         totalPesoNeto += item.pesoNeto;
         totalGanancia += item.total;
     });
+    
+    // Cálculo de la deuda arrastrada para el reporte de confirmación
+    let deudaCampanaAnterior = 0;
+    let codigosCampanas = Object.keys(baseDatosCampanas.lista).sort();
+    let indiceActual = codigosCampanas.indexOf(campanaActiva);
+    if (indiceActual > 0) {
+        let codigoAnterior = codigosCampanas[indiceActual - 1];
+        let registrosAnteriores = baseDatosCampanas.lista[codigoAnterior] || [];
+        let prestamoAnterior = baseDatosCampanas.prestamos[codigoAnterior] || 0;
+        let gananciaBrutaAnterior = registrosAnteriores.reduce((acc, item) => acc + item.total, 0);
+        let saldoNetoAnterior = gananciaBrutaAnterior - prestamoAnterior;
+        if (saldoNetoAnterior < 0) {
+            deudaCampanaAnterior = Math.abs(saldoNetoAnterior);
+        }
+    }
+
+    let saldoNetoFinanzas = totalGanancia - prestamoCampana - deudaCampanaAnterior;
 
     let mensajeConfirmacion = 
         `¿ESTÁS SEGURO DE HACER UN CIERRE DE CAMPAÑA?\n\n` +
         `Esta acción es definitiva para la Temporada Activa de los Campos Dora Graciela.\n` +
         `Una vez ejecutada, la información quedará protegida e inmutable.\n\n` +
         `RESUMEN FINAL ACUMULADO (${campanaActiva}):\n` +
-        `📦 Total de Javas cosechadas: ${totalJavas}\n` +
+        `📦 Total de Javas cosechadas: ${totalJabas}\n` +
         `⚖️ Peso Neto Total: ${totalPesoNeto.toFixed(2)} kg\n` +
-        `💰 Total Liquidado: $${totalGanancia.toFixed(2)}\n\n` +
+        `💰 Total Bruto Liquidado: $${totalGanancia.toFixed(2)}\n` +
+        `💸 Financiamiento de Prestamistas: $${prestamoCampana.toFixed(2)}\n` +
+        `🛑 Deuda Arrastrada Pasada: $${deudaCampanaAnterior.toFixed(2)}\n` +
+        `💵 SALDO NETO REAL LIMPIO: $${saldoNetoFinanzas.toFixed(2)}\n\n` +
         `Presiona ACEPTAR para proceder al cierre total del campo.`;
 
     if (confirm(mensajeConfirmacion)) {
@@ -159,6 +229,7 @@ function verificarEstadoCampana() {
     const badge = document.getElementById("estadoCampana");
     const btnCierre = document.getElementById("btnCerrarCampana");
     const btnGuardar = document.getElementById("btnGuardar");
+    const btnPrestamo = document.getElementById("btnModificarPrestamo");
 
     if (cierresListado.includes(campanaActiva)) {
         if (badge) {
@@ -168,6 +239,10 @@ function verificarEstadoCampana() {
         if (btnCierre) {
             btnCierre.className = "btn-cierre btn-desactivado";
             btnCierre.innerHTML = `<i class="fa-solid fa-file-invoice"></i> Campo Archivado`;
+        }
+        if (btnPrestamo) {
+            btnPrestamo.style.opacity = "0.5";
+            btnPrestamo.disabled = true;
         }
         if (btnGuardar) {
             btnGuardar.disabled = true;
@@ -183,20 +258,16 @@ function verificarEstadoCampana() {
             btnCierre.className = "btn-cierre";
             btnCierre.innerHTML = `<i class="fa-solid fa-box-archive"></i> Cerrar Campaña`;
         }
+        if (btnPrestamo) {
+            btnPrestamo.style.opacity = "1";
+            btnPrestamo.disabled = false;
+        }
         if (btnGuardar) {
             btnGuardar.disabled = false;
             btnGuardar.style.opacity = "1";
             btnGuardar.innerHTML = indiceEdicion >= 0 ? '<i class="fa-solid fa-floppy-disk"></i> Guardar Cambios' : '<i class="fa-solid fa-plus"></i> Agregar Registro';
         }
     }
-}
-
-// Función auxiliar por si necesitas reabrirla desde la consola del desarrollador
-function reabrirCampanaConsola(codigo) {
-    let cierres = JSON.parse(localStorage.getItem("campanasCerradasListado")) || [];
-    cierres = cierres.filter(c => c !== codigo);
-    localStorage.setItem("campanasCerradasListado", JSON.stringify(cierres));
-    location.reload();
 }
 
 /* =========================
@@ -233,12 +304,11 @@ function sugerirSiguienteDia() {
     document.getElementById("dia").value = dia;
     
     let ultimaFecha = new Date(ultimoRegistro.fecha + "T00:00:00");
-    let (ultimaFecha.getDate() + 1);
+    ultimaFecha.setDate(ultimaFecha.getDate() + 1);
     document.getElementById("fecha").value = ultimaFecha.toISOString().split('T')[0];
 }
 
 function agregarFila(){
-    // Validar bloqueo por cierre
     let cierresListado = JSON.parse(localStorage.getItem("campanasCerradasListado")) || [];
     if (cierresListado.includes(campanaActiva)) {
         alert("⛔ Operación denegada. La campaña se encuentra archivada y protegida contra modificaciones.");
@@ -287,7 +357,6 @@ function actualizarSelectFiltroSemanas() {
     let valorSeleccionado = select.value;
     select.innerHTML = '<option value="todos">Mostrar Todas</option>';
     
-    // CORRECCIÓN: Normalizar la extracción de semanas únicas para el filtro dropdown
     let semanasUnicas = [...new Set(datos.map(item => {
         let num = parseInt(String(item.semana).replace(/\D/g, ""), 10);
         return isNaN(num) ? 1 : num;
@@ -338,13 +407,52 @@ function mostrarDatos(){
         totalGanado += item.total;
     });
 
+    // ==========================================================================
+    // LÓGICA AUTOMÁTICA: DETECTAR SI LA CAMPAÑA ANTERIOR DEJÓ ALGO PENDIENTE
+    // ==========================================================================
+    let deudaCampanaAnterior = 0;
+    let codigosCampanas = Object.keys(baseDatosCampanas.lista).sort(); 
+    let indiceActual = codigosCampanas.indexOf(campanaActiva);
+
+    if (indiceActual > 0) {
+        let codigoAnterior = codigosCampanas[indiceActual - 1];
+        let registrosAnteriores = baseDatosCampanas.lista[codigoAnterior] || [];
+        let prestamoAnterior = baseDatosCampanas.prestamos[codigoAnterior] || 0;
+        
+        let gananciaBrutaAnterior = registrosAnteriores.reduce((acc, item) => acc + item.total, 0);
+        let saldoNetoAnterior = gananciaBrutaAnterior - prestamoAnterior;
+
+        if (saldoNetoAnterior < 0) {
+            deudaCampanaAnterior = Math.abs(saldoNetoAnterior); 
+        }
+    }
+
+    // Calcular las deudas y el saldo neto real de la campaña actual
+    let deudaTotalEstaCampana = prestamoCampana;
+    let saldoNeto = totalGanado - deudaTotalEstaCampana - deudaCampanaAnterior;
+
+    // Pintar los datos en los contenedores superiores del HTML
     document.getElementById("totalJabas").textContent = totalJabas;
     document.getElementById("totalPeso").textContent = totalPeso.toFixed(2) + " kg";
     document.getElementById("totalGanado").textContent = "$" + totalGanado.toFixed(2);
+    
+    if (document.getElementById("totalDeuda")) {
+        document.getElementById("totalDeuda").textContent = "$" + deudaTotalEstaCampana.toFixed(2);
+    }
+    
+    if (document.getElementById("deudaAnterior")) {
+        document.getElementById("deudaAnterior").textContent = "$" + deudaCampanaAnterior.toFixed(2);
+        document.getElementById("deudaAnterior").style.color = deudaCampanaAnterior > 0 ? "#dc2626" : "gray";
+    }
+
+    if (document.getElementById("saldoNetoReal")) {
+        document.getElementById("saldoNetoReal").textContent = "$" + saldoNeto.toFixed(2);
+        document.getElementById("saldoNetoReal").style.color = saldoNeto >= 0 ? "#2d6a4f" : "#dc2626";
+    }
 
     mostrarResumenSemanal();
     actualizarGraficoSemanas(); 
-    calcularYMostrarModuloComparativo(); // Carga los análisis Inter-Campañas
+    calcularYMostrarModuloComparativo(); 
 }
 
 function renderizarTablaHTML(listaParaMostrar) {
@@ -426,17 +534,11 @@ function ordenarTabla(criterio) {
     mostrarDatos();
 }
 
-/* ==========================================================================
-   🛠️ SOLUCIÓN AL ERROR DE DUPLICACIÓN DE TARJETAS SEMANALES
-   ========================================================================== */
 function obtenerResumenPorSemanas() {
     let resumen = {};
     datos.forEach(item=>{
-        // Extraemos solo el número entero de la semana (por si viene como "Semana 5", "5" o "05")
         let numeroLimpio = parseInt(String(item.semana).replace(/\D/g, ""), 10);
         if (isNaN(numeroLimpio)) numeroLimpio = 1;
-        
-        // Lo formateamos forzosamente con dos dígitos siempre: "05"
         let semanaNormalizada = String(numeroLimpio).padStart(2, '0');
 
         if(!resumen[semanaNormalizada]){ 
@@ -455,7 +557,6 @@ function mostrarResumenSemanal(){
     let resumen = obtenerResumenPorSemanas();
     let html = "";
 
-    // Obtenemos las claves ordenadas ("01", "02", "03", "04", "05"...)
     Object.keys(resumen).sort().forEach(semana => {
         html += `
         <div class="card" style="border-top: 4px solid #2d6a4f; display:block;">
@@ -469,7 +570,7 @@ function mostrarResumenSemanal(){
 }
 
 /* ==========================================================================
-   NUEVA MÓDULO DE COMPARATIVA INTER-CAMPAÑAS
+   MÓDULO DE COMPARATIVA INTER-CAMPAÑAS
    ========================================================================== */
 function calcularYMostrarModuloComparativo() {
     let tbody = document.querySelector("#tablaComparativa tbody");
@@ -485,7 +586,6 @@ function calcularYMostrarModuloComparativo() {
     codigos.forEach(cod => {
         let registrosCamp = baseDatosCampanas.lista[cod] || [];
         
-        // Contar semanas únicas normalizadas
         let semanasUnicas = [...new Set(registrosCamp.map(item => {
             let n = parseInt(String(item.semana).replace(/\D/g, ""), 10);
             return isNaN(n) ? 1 : n;
@@ -597,6 +697,7 @@ function actualizarGraficoSemanas() {
 
 function guardarDatos(){
     baseDatosCampanas.lista[campanaActiva] = datos;
+    baseDatosCampanas.prestamos[campanaActiva] = prestamoCampana;
     localStorage.setItem("sistemaCampanasEsparrafos", JSON.stringify(baseDatosCampanas));
 }
 
@@ -634,9 +735,12 @@ function importarBackup(event) {
             if (backup && backup.lista) {
                 if(confirm("¿Deseas restaurar esta copia de seguridad? Se sobreescribirán todas las campañas actuales del sistema.")){
                     baseDatosCampanas = backup;
+                    if(!baseDatosCampanas.prestamos) baseDatosCampanas.prestamos = {};
+                    
                     localStorage.setItem("sistemaCampanasEsparrafos", JSON.stringify(baseDatosCampanas));
                     campanaActiva = baseDatosCampanas.campanaActiva;
                     datos = baseDatosCampanas.lista[campanaActiva] || [];
+                    prestamoCampana = baseDatosCampanas.prestamos[campanaActiva] || 0;
                     
                     construirSelectorCampanas();
                     mostrarDatos();
@@ -680,6 +784,31 @@ function exportarExcel(){
 
     let wsGeneral = XLSX.utils.json_to_sheet(mapearDatos(datos));
     XLSX.utils.book_append_sheet(wb, wsGeneral, `Historial — ${campanaActiva}`);
+    
+    // Obtener deuda anterior para el balance general de Excel
+    let deudaCampanaAnterior = 0;
+    let codigosCampanas = Object.keys(baseDatosCampanas.lista).sort();
+    let indiceActual = codigosCampanas.indexOf(campanaActiva);
+    if (indiceActual > 0) {
+        let codigoAnterior = codigosCampanas[indiceActual - 1];
+        let registrosAnteriores = baseDatosCampanas.lista[codigoAnterior] || [];
+        let prestamoAnterior = baseDatosCampanas.prestamos[codigoAnterior] || 0;
+        let gananciaBrutaAnterior = registrosAnteriores.reduce((acc, item) => acc + item.total, 0);
+        let saldoNetoAnterior = gananciaBrutaAnterior - prestamoAnterior;
+        if (saldoNetoAnterior < 0) { deudaCampanaAnterior = Math.abs(saldoNetoAnterior); }
+    }
+
+    let totalG = datos.reduce((acc, i) => acc + i.total, 0);
+    let balanceResumen = [{
+        "Campaña": campanaActiva,
+        "Ingreso Bruto ($)": totalG,
+        "Préstamos Campaña Actual ($)": prestamoCampana,
+        "Deuda Arrastrada Pasada ($)": deudaCampanaAnterior,
+        "Utilidad Neta Real ($)": totalG - prestamoCampana - deudaCampanaAnterior
+    }];
+    let wsBalance = XLSX.utils.json_to_sheet(balanceResumen);
+    XLSX.utils.book_append_sheet(wb, wsBalance, `Resumen Financiero`);
+
     XLSX.writeFile(wb, `Reporte_Esparragos_${campanaActiva}.xlsx`);
 }
 
@@ -713,17 +842,42 @@ async function descargarPDF(){
     let totalJabas = 0, totalPesoNeto = 0, totalGanancia = 0;
     datos.forEach(item => { totalJabas += item.jabas; totalPesoNeto += item.pesoNeto; totalGanancia += item.total; });
 
+    // Deuda anterior para reporte en PDF
+    let deudaCampanaAnterior = 0;
+    let codigosCampanas = Object.keys(baseDatosCampanas.lista).sort();
+    let indiceActual = codigosCampanas.indexOf(campanaActiva);
+    if (indiceActual > 0) {
+        let codigoAnterior = codigosCampanas[indiceActual - 1];
+        let registrosAnteriores = baseDatosCampanas.lista[codigoAnterior] || [];
+        let prestamoAnterior = baseDatosCampanas.prestamos[codigoAnterior] || 0;
+        let gananciaBrutaAnterior = registrosAnteriores.reduce((acc, item) => acc + item.total, 0);
+        let saldoNetoAnterior = gananciaBrutaAnterior - prestamoAnterior;
+        if (saldoNetoAnterior < 0) { deudaCampanaAnterior = Math.abs(saldoNetoAnterior); }
+    }
+
     y += 4;
     doc.setFillColor(244, 249, 245); doc.setDrawColor(216, 235, 217);
-    doc.roundedRect(14, y, 182, 18, 2, 2, 'FD');
+    doc.roundedRect(14, y, 182, 22, 2, 2, 'FD');
 
-    doc.setFontSize(8); doc.setTextColor(82, 121, 111);
-    doc.text("TOTAL JABAS", 20, y + 5); doc.text("PESO NETO TOTAL", 90, y + 5); doc.text("TOTAL LIQUIDADO", 150, y + 5);
+    doc.setFontSize(7); doc.setTextColor(82, 121, 111);
+    doc.text("TOTAL JABAS", 16, y + 5); 
+    doc.text("PESO NETO TOTAL", 52, y + 5); 
+    doc.text("TOTAL BRUTO LIQ.", 92, y + 5);
+    doc.text("DEUDA CAMPAÑA ACT.", 130, y + 5);
+    doc.text("DEUDA ANT. ARRASTRADA", 164, y + 5);
 
-    doc.setFont("Helvetica", "bold"); doc.setFontSize(11); doc.setTextColor(27, 67, 50);
-    doc.text(`${totalJabas} un.`, 20, y + 12); doc.text(`${totalPesoNeto.toFixed(2)} kg`, 90, y + 12); doc.text(`$${totalGanancia.toFixed(2)}`, 150, y + 12);
+    doc.setFont("Helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(27, 67, 50);
+    doc.text(`${totalJabas} un.`, 16, y + 13); 
+    doc.text(`${totalPesoNeto.toFixed(2)} kg`, 52, y + 13); 
+    doc.text(`$${totalGanancia.toFixed(2)}`, 92, y + 13);
+    doc.text(`$${prestamoCampana.toFixed(2)}`, 130, y + 13);
+    doc.text(`$${deudaCampanaAnterior.toFixed(2)}`, 164, y + 13);
 
-    y += 30;
+    y += 28;
+    doc.setFontSize(11); doc.setTextColor(27, 67, 50);
+    doc.text(`UTILIDAD REAL ESTIMADA DE COSECHA: $${(totalGanancia - prestamoCampana - deudaCampanaAnterior).toFixed(2)}`, 14, y);
+
+    y += 8;
     let filasDetalle = [];
     datos.forEach(item => {
         let numSem = parseInt(String(item.semana).replace(/\D/g, ""), 10);
